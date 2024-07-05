@@ -73,7 +73,7 @@
  *
  * Tokens defined in khrplatform.h:
  *
- *    KHRONOS_False, KHRONOS_True Enumerated boolean false/true values.
+ *    KHRONOS_FALSE, KHRONOS_TRUE Enumerated boolean false/true values.
  *
  *    KHRONOS_SUPPORT_INT64 is 1 if 64 bit integers are supported; otherwise 0.
  *    KHRONOS_SUPPORT_FLOAT is 1 if floats are supported; otherwise 0.
@@ -300,11 +300,11 @@ typedef khronos_int64_t        khronos_stime_nanoseconds_t;
  * Enumerated boolean type
  *
  * Values other than zero should be considered to be true.  Therefore
- * comparisons should not be made against KHRONOS_True.
+ * comparisons should not be made against KHRONOS_TRUE.
  */
 typedef enum {
-    KHRONOS_False = 0,
-    KHRONOS_True  = 1,
+    KHRONOS_FALSE = 0,
+    KHRONOS_TRUE  = 1,
     KHRONOS_BOOLEAN_ENUM_FORCE_SIZE = KHRONOS_MAX_ENUM
 } khronos_boolean_enum_t;
 

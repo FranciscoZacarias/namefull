@@ -10,13 +10,18 @@
 #define SCREEN_VS_SHADER    "D:\\work\\noname\\src\\shaders\\screen_vertex_shader.glsl"
 #define SCREEN_FS_SHADER  "D:\\work\\noname\\src\\shaders\\screen_fragment_shader.glsl"
 
+#define Initial_Vertices 1024
+#define Initial_Lines    3
+#define Initial_Indices  1024
+#define Initial_Textures 8
+
 typedef struct Vertex {
   Vec3f32 position;
   Vec4f32 color;
   Vec2f32 uv;
   Vec3f32 normal;
   u32 texture;
-}
+} Vertex;
 
 typedef struct Renderer {
   
@@ -55,10 +60,12 @@ typedef struct Renderer {
   u32 lines_count;
   u32 lines_capacity;
   
-  u32 textures[8];
+  u32 textures[Initial_Textures];
   
 } Renderer;
 
-internal Renderer renderer_init(MainWindow* window);
+Renderer GlobalRenderer;
+
+internal Renderer renderer_init();
 
 #endif //RENDERER_H

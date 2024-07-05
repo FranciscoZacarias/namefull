@@ -31,8 +31,8 @@ internal void  arena_free(Arena* arena);
 
 internal void arena_print(Arena *arena);
 
-#define PushArray(arena, type, count)       (type *)arena_push((arena), sizeof(type)*(count))
-#define PushArrayNoZero(arena, type, count) (type *)arena_push_no_zero((arena), sizeof(type)*(count))
+#define ArenaPush(arena, type, count)       (type *)arena_push((arena), sizeof(type)*(count))
+#define ArenaPushNoZero(arena, type, count) (type *)arena_push_no_zero((arena), sizeof(type)*(count))
 
 typedef struct Arena_Temp {
   Arena* arena;
