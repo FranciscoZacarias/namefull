@@ -1,0 +1,15 @@
+*
+!*.c
+!*.h
+!*.4coder
+!*.bat
+!.gitignore
+
+!source/
+!source/**
+
+!shader/
+!shader/*.glsl
+
+!run.bat
+!build.bat
