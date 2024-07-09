@@ -15,11 +15,11 @@ renderer_init(s32 window_width, s32 window_height) {
   GlobalRenderer.vertex_capacity = Kilobytes(64);
   GlobalRenderer.vertex_data  = ArenaPush(GlobalRenderer.arena, Vertex, GlobalRenderer.vertex_capacity);
   
-  GlobalRenderer.triangles_indices_capacity = GlobalRenderer.vertex_capacity / sizeof(Vertex);
-  GlobalRenderer.triangles_indices_data     = (u32*)ArenaPush(GlobalRenderer.arena, u32, GlobalRenderer.triangles_indices_capacity);
+  GlobalRenderer.triangles_indices_capacity = Kilobytes(16);
+  GlobalRenderer.triangles_indices_data   = (u32*)ArenaPush(GlobalRenderer.arena, u32, GlobalRenderer.triangles_indices_capacity);
   
-  GlobalRenderer.lines_indices_capacity = GlobalRenderer.vertex_capacity / sizeof(Vertex);
-  GlobalRenderer.lines_indices_data     = ArenaPush(GlobalRenderer.arena, Vertex, GlobalRenderer.lines_indices_capacity);
+  GlobalRenderer.lines_indices_capacity = Kilobytes(16);
+  GlobalRenderer.lines_indices_data     =  ArenaPush(GlobalRenderer.arena, u32, GlobalRenderer.lines_indices_capacity);
   
   Arena_Temp scratch = scratch_begin(0, 0);
   
@@ -73,35 +73,35 @@ renderer_init(s32 window_width, s32 window_height) {
   glDeleteShader(vertex_shader);
   glDeleteShader(fragment_shader);
   
-  glCreateVertexArrays(1, &GlobalRenderer.triangles_vao);
+  glCreateVertexArrays(1, &GlobalRenderer.vertex_vao);
   {
-    glEnableVertexArrayAttrib (GlobalRenderer.triangles_vao, 0);
-    glVertexArrayAttribFormat (GlobalRenderer.triangles_vao, 0, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, position));
-    glVertexArrayAttribBinding(GlobalRenderer.triangles_vao, 0, 0);
+    glEnableVertexArrayAttrib (GlobalRenderer.vertex_vao, 0);
+    glVertexArrayAttribFormat (GlobalRenderer.vertex_vao, 0, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, position));
+    glVertexArrayAttribBinding(GlobalRenderer.vertex_vao, 0, 0);
     
-    glEnableVertexArrayAttrib(GlobalRenderer.triangles_vao, 1);
-    glVertexArrayAttribFormat(GlobalRenderer.triangles_vao, 1, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, color));
-    glVertexArrayAttribBinding(GlobalRenderer.triangles_vao, 1, 0);
+    glEnableVertexArrayAttrib(GlobalRenderer.vertex_vao, 1);
+    glVertexArrayAttribFormat(GlobalRenderer.vertex_vao, 1, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, color));
+    glVertexArrayAttribBinding(GlobalRenderer.vertex_vao, 1, 0);
     
-    glEnableVertexArrayAttrib (GlobalRenderer.triangles_vao, 2);
-    glVertexArrayAttribFormat (GlobalRenderer.triangles_vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, uv));
-    glVertexArrayAttribBinding(GlobalRenderer.triangles_vao, 2, 0);
+    glEnableVertexArrayAttrib (GlobalRenderer.vertex_vao, 2);
+    glVertexArrayAttribFormat (GlobalRenderer.vertex_vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, uv));
+    glVertexArrayAttribBinding(GlobalRenderer.vertex_vao, 2, 0);
     
-    glEnableVertexArrayAttrib (GlobalRenderer.triangles_vao, 3);
-    glVertexArrayAttribFormat (GlobalRenderer.triangles_vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, normal));
-    glVertexArrayAttribBinding(GlobalRenderer.triangles_vao, 3, 0);
+    glEnableVertexArrayAttrib (GlobalRenderer.vertex_vao, 3);
+    glVertexArrayAttribFormat (GlobalRenderer.vertex_vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, normal));
+    glVertexArrayAttribBinding(GlobalRenderer.vertex_vao, 3, 0);
     
-    glEnableVertexArrayAttrib (GlobalRenderer.triangles_vao, 4);
-    glVertexArrayAttribFormat (GlobalRenderer.triangles_vao, 4, 1, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, texture));
-    glVertexArrayAttribBinding(GlobalRenderer.triangles_vao, 4, 0);
+    glEnableVertexArrayAttrib (GlobalRenderer.vertex_vao, 4);
+    glVertexArrayAttribFormat (GlobalRenderer.vertex_vao, 4, 1, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, texture));
+    glVertexArrayAttribBinding(GlobalRenderer.vertex_vao, 4, 0);
     
-    glCreateBuffers(1, &GlobalRenderer.triangles_vbo);
-    glNamedBufferData(GlobalRenderer.triangles_vbo, sizeof(Vertex) * 3 * Initial_Vertices, NULL, GL_DYNAMIC_DRAW);
-    glVertexArrayVertexBuffer(GlobalRenderer.triangles_vao, 0, GlobalRenderer.triangles_vbo, 0, sizeof(Vertex));
+    glCreateBuffers(1, &GlobalRenderer.vertex_vbo);
+    glNamedBufferData(GlobalRenderer.vertex_vbo, sizeof(Vertex) * 3 * Initial_Vertices, NULL, GL_STATIC_DRAW);
+    glVertexArrayVertexBuffer(GlobalRenderer.vertex_vao, 0, GlobalRenderer.vertex_vbo, 0, sizeof(Vertex));
     
-    glCreateBuffers(1, &GlobalRenderer.triangles_ebo);
-    glNamedBufferData(GlobalRenderer.triangles_ebo, sizeof(u32) * Initial_Indices, NULL, GL_STATIC_DRAW);
-    glVertexArrayElementBuffer(GlobalRenderer.triangles_vao, GlobalRenderer.triangles_ebo);
+    glCreateBuffers(1, &GlobalRenderer.vertex_ebo);
+    glNamedBufferData(GlobalRenderer.vertex_ebo, sizeof(u32) * Initial_Indices, NULL, GL_STATIC_DRAW);
+    glVertexArrayElementBuffer(GlobalRenderer.vertex_vao, GlobalRenderer.vertex_ebo);
   }
   
   glCreateVertexArrays(1, &GlobalRenderer.lines_vao);
@@ -129,6 +129,10 @@ renderer_init(s32 window_width, s32 window_height) {
     glCreateBuffers(1, &GlobalRenderer.lines_vbo);
     glNamedBufferData(GlobalRenderer.lines_vbo, sizeof(Vertex) * Initial_Lines, NULL, GL_STATIC_DRAW);
     glVertexArrayVertexBuffer(GlobalRenderer.lines_vao, 0, GlobalRenderer.lines_vbo, 0, sizeof(Vertex));
+    
+    glCreateBuffers(1, &GlobalRenderer.lines_ebo);
+    glNamedBufferData(GlobalRenderer.lines_ebo, sizeof(u32) * Initial_Indices, NULL, GL_STATIC_DRAW);
+    glVertexArrayElementBuffer(GlobalRenderer.lines_vao, GlobalRenderer.lines_ebo);
   }
   
   // MSAA
@@ -277,16 +281,18 @@ renderer_draw(Mat4f32 view, Mat4f32 projection, s32 window_width, s32 window_hei
   
   // Draw to msaa_fbo
   {
+    // TODO(fz): We don't need to do NamedBufferSubData all the time, since we don't clear the buffers every frame.
+    
     // Triangles
-    glBindVertexArray(GlobalRenderer.triangles_vao);
-    glNamedBufferSubData(GlobalRenderer.triangles_vbo, 0, GlobalRenderer.triangles_count * 3 * sizeof(Vertex), GlobalRenderer.triangles_data);
-    glNamedBufferSubData(GlobalRenderer.triangles_ebo, 0, GlobalRenderer.triangles_indices_count * sizeof(u32), GlobalRenderer.triangles_indices_data);
-    glDrawElements(GL_TRIANGLES, GlobalRenderer.triangles_count, GL_UNSIGNED_BYTE, NULL);
+    glBindVertexArray(GlobalRenderer.vertex_vao);
+    glNamedBufferSubData(GlobalRenderer.vertex_vbo, 0, GlobalRenderer.vertex_count * 3 * sizeof(Vertex), GlobalRenderer.vertex_data);
+    glNamedBufferSubData(GlobalRenderer.vertex_ebo, 0, GlobalRenderer.triangles_indices_count * sizeof(u32), GlobalRenderer.triangles_indices_data);
+    glDrawElements(GL_TRIANGLES, GlobalRenderer.vertex_count, GL_UNSIGNED_BYTE, NULL);
     
     // Lines
     glBindVertexArray(GlobalRenderer.lines_vao);
-    glNamedBufferSubData(GlobalRenderer.lines_vbo, 0, GlobalRenderer.lines_count * 3 * sizeof(Vertex), GlobalRenderer.lines_data);
-    glDrawArrays(GL_LINES, 0, GlobalRenderer.lines_count * 3);
+    glNamedBufferSubData(GlobalRenderer.lines_vbo, 0, GlobalRenderer.lines_indices_count * 3 * sizeof(Vertex), GlobalRenderer.lines_indices_data);
+    glDrawArrays(GL_LINES, 0, GlobalRenderer.lines_indices_count * 3);
     
     glBindVertexArray(0);
   }
@@ -400,7 +406,7 @@ renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a) {
 
 internal void
 renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture) {
-  if (GlobalRenderer.lines_count + 1 > GlobalRenderer.lines_capacity) {
+  if (GlobalRenderer.lines_indices_count + 1 > GlobalRenderer.lines_indices_capacity) {
     printf("Error :: Renderer :: Too many lines!");
     Assert(0);
   }
@@ -421,8 +427,8 @@ renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture) {
     texture
   };
   
-  Vertex* data = GlobalRenderer.lines_data;
-  u32 index    = GlobalRenderer.lines_count * 2;
+  Vertex* data = GlobalRenderer.lines_indices_data;
+  u32 index    = GlobalRenderer.lines_indices_count * 2;
   
   data[index+0] = a;
   data[index+1] = b;

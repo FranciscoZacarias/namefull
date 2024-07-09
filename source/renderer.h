@@ -25,14 +25,15 @@ typedef struct Vertex {
 
 typedef struct Renderer {
   
-  // Default program
   u32 main_shader;
-  u32 triangles_vao;
-  u32 triangles_vbo;
-  u32 triangles_ebo;
+  
+  u32 vertex_vao;
+  u32 vertex_vbo;
+  u32 vertex_ebo;
   
   u32 lines_vao;
   u32 lines_vbo;
+  u32 lines_ebo;
   
   // Offscreen 
   u32 msaa_fbo;
