@@ -5,10 +5,10 @@
 
 #define MSAA_SAMPLES 8
 
-#define MAIN_VS_SHADER   "D:\\work\\noname\\src\\shaders\\default_vertex_shader.glsl"
-#define MAIN_FS_SHADER "D:\\work\\noname\\src\\shaders\\default_fragment_shader.glsl"
-#define SCREEN_VS_SHADER    "D:\\work\\noname\\src\\shaders\\screen_vertex_shader.glsl"
-#define SCREEN_FS_SHADER  "D:\\work\\noname\\src\\shaders\\screen_fragment_shader.glsl"
+#define MAIN_VS "D:\\work\\noname\\src\\shaders\\default_vertex_shader.glsl"
+#define MAIN_FS "D:\\work\\noname\\src\\shaders\\default_fragment_shader.glsl"
+#define SCREEN_VS "D:\\work\\noname\\src\\shaders\\screen_vertex_shader.glsl"
+#define SCREEN_FS "D:\\work\\noname\\src\\shaders\\screen_fragment_shader.glsl"
 
 #define Initial_Vertices 1024
 #define Initial_Lines    3
@@ -50,8 +50,8 @@ typedef struct Renderer {
   Arena* arena;
   
   Vertex* triangles_data;
-  u32  triangles_count;
-  u32  triangles_capacity;
+  u32     triangles_count;
+  u32     triangles_capacity;
   u32* triangles_indices_data;
   u32  triangles_indices_count;
   u32  triangles_indices_capacity;
@@ -60,12 +60,21 @@ typedef struct Renderer {
   u32 lines_count;
   u32 lines_capacity;
   
-  u32 textures[Initial_Textures];
+  u32 textures_data[Initial_Textures];
+  u32 textures_count;
   
 } Renderer;
 
 Renderer GlobalRenderer;
 
-internal Renderer renderer_init();
+internal void renderer_init(s32 window_width, s32 window_height);
+internal void renderer_draw(Mat4f32 view, Mat4f32 projection, s32 window_width, s32 window_height);
+internal void renderer_on_resize(s32 window_width, s32 window_height);
+
+internal u32 renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a);
+
+internal void renderer_set_uniform_mat4fv(u32 program, const char* uniform, Mat4f32 mat);
+internal void renderer_set_array_s32(u32 program, const char* uniform, s32 count, s32* ptr);
+internal void renderer_set_uniform_s32(u32 program, const char* uniform, s32 s);
 
 #endif //RENDERER_H

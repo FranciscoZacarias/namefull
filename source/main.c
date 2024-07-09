@@ -7,6 +7,7 @@ main(int argc, char** argv) {
   thread_context_init_and_attach(&main_thread_context);
   
   window_init();
+  renderer_init(GlobalProgram.window_width, GlobalProgram.window_height);
   
   while (GlobalProgram.is_running) {
     window_tick();
