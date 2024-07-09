@@ -5,10 +5,10 @@
 
 #define MSAA_SAMPLES 8
 
-#define MAIN_VS "D:\\work\\noname\\src\\shaders\\default_vertex_shader.glsl"
-#define MAIN_FS "D:\\work\\noname\\src\\shaders\\default_fragment_shader.glsl"
-#define SCREEN_VS "D:\\work\\noname\\src\\shaders\\screen_vertex_shader.glsl"
-#define SCREEN_FS "D:\\work\\noname\\src\\shaders\\screen_fragment_shader.glsl"
+#define MAIN_VS   "D:\\work\\namefull\\source\\shaders\\vs_main.glsl"
+#define MAIN_FS   "D:\\work\\namefull\\source\\shaders\\fs_main.glsl"
+#define SCREEN_VS "D:\\work\\namefull\\source\\shaders\\vs_screen.glsl"
+#define SCREEN_FS "D:\\work\\namefull\\source\\shaders\\fs_screen.glsl"
 
 #define Initial_Vertices 1024
 #define Initial_Lines    3
@@ -49,16 +49,20 @@ typedef struct Renderer {
   // Data
   Arena* arena;
   
-  Vertex* triangles_data;
-  u32     triangles_count;
-  u32     triangles_capacity;
+  // Vertex data
+  Vertex* vertex_data;
+  u32     vertex_count;
+  u32     vertex_capacity;
+  
+  // Indices data
   u32* triangles_indices_data;
   u32  triangles_indices_count;
   u32  triangles_indices_capacity;
   
-  Vertex* lines_data;
-  u32 lines_count;
-  u32 lines_capacity;
+  // Lines data
+  u32* lines_indices_data;
+  u32  lines_indices_count;
+  u32  lines_indices_capacity;
   
   u32 textures_data[Initial_Textures];
   u32 textures_count;
@@ -72,6 +76,12 @@ internal void renderer_draw(Mat4f32 view, Mat4f32 projection, s32 window_width, 
 internal void renderer_on_resize(s32 window_width, s32 window_height);
 
 internal u32 renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a);
+
+internal void renderer_push_quad(Vec3f32 bot_left_point, Vec4f32 color, f32 width, f32 height, u32 texture);
+internal void renderer_push_triangle(Vertex a, Vertex b, Vertex c, u32 texture);
+internal void renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture);
+internal void renderer_push_vertex(Vertex v);
+internal void renderer_push_index(u32 index);
 
 internal void renderer_set_uniform_mat4fv(u32 program, const char* uniform, Mat4f32 mat);
 internal void renderer_set_array_s32(u32 program, const char* uniform, s32 count, s32* ptr);

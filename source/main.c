@@ -6,11 +6,21 @@ main(int argc, char** argv) {
   Thread_Context main_thread_context;
   thread_context_init_and_attach(&main_thread_context);
   
-  window_init();
+  program_init();
   renderer_init(GlobalProgram.window_width, GlobalProgram.window_height);
   
+  
+  u32 texture_red   = renderer_load_color_texture(1.0, 0.0, 0.0, 1.0);
+  u32 texture_green = renderer_load_color_texture(0.0, 1.0, 0.0, 1.0);
+  u32 texture_blue  = renderer_load_color_texture(0.0, 0.0, 1.0, 1.0);
+  renderer_push_line(vec3f32(-100.0f,    0.0f,    0.0f),  vec3f32(100.0f,   0.0f,   0.0f), texture_red);
+  renderer_push_line(vec3f32(   0.0f, -100.0f,    0.0f),  vec3f32(  0.0f, 100.0f,   0.0f), texture_green);
+  renderer_push_line(vec3f32(   0.0f,    0.0f, -100.0f),  vec3f32(  0.0f,   0.0f, 100.0f), texture_blue);
+  
   while (GlobalProgram.is_running) {
-    window_tick();
+    program_tick();
+    
+    renderer_draw(GlobalProgram.view, GlobalProgram.projection, GlobalProgram.window_width, GlobalProgram.window_height);
     
     glfwSwapBuffers(GlobalProgram.window);
   }
@@ -19,7 +29,7 @@ main(int argc, char** argv) {
 }
 
 internal void
-window_tick() {
+program_tick() {
   glfwPollEvents();
   
   GlobalProgram.view = look_at_mat4f32(GlobalProgram.camera.position, add_vec3f32(GlobalProgram.camera.position, GlobalProgram.camera.front), GlobalProgram.camera.up);
@@ -47,7 +57,7 @@ window_tick() {
 }
 
 internal void 
-window_init() {
+program_init() {
   AssertNoReentry();
   MemoryZeroStruct(&GlobalProgram);
   

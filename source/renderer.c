@@ -1,3 +1,9 @@
+internal Vertex
+vertex(Vec3f32 position, Vec4f32 color, Vec2f32 uv, Vec3f32 normal, u32 texture) {
+  Vertex result = (Vertex) { position, color, uv, normal, texture };
+  return result;
+}
+
 internal void
 renderer_init(s32 window_width, s32 window_height) {
   AssertNoReentry();
@@ -6,14 +12,14 @@ renderer_init(s32 window_width, s32 window_height) {
   
   GlobalRenderer.arena = arena_init();
   
-  GlobalRenderer.triangles_capacity = Kilobytes(16);
-  GlobalRenderer.triangles_data = ArenaPush(GlobalRenderer.arena, Vertex, GlobalRenderer.triangles_capacity*3);
+  GlobalRenderer.vertex_capacity = Kilobytes(64);
+  GlobalRenderer.vertex_data  = ArenaPush(GlobalRenderer.arena, Vertex, GlobalRenderer.vertex_capacity);
   
-  GlobalRenderer.triangles_indices_capacity = GlobalRenderer.triangles_capacity * 3;
-  GlobalRenderer.triangles_indices_data = (u32*)ArenaPush(GlobalRenderer.arena, u32, GlobalRenderer.triangles_indices_capacity);
+  GlobalRenderer.triangles_indices_capacity = GlobalRenderer.vertex_capacity / sizeof(Vertex);
+  GlobalRenderer.triangles_indices_data     = (u32*)ArenaPush(GlobalRenderer.arena, u32, GlobalRenderer.triangles_indices_capacity);
   
-  GlobalRenderer.lines_capacity = 3;
-  GlobalRenderer.lines_data = ArenaPush(GlobalRenderer.arena, Vertex, GlobalRenderer.lines_capacity*2);
+  GlobalRenderer.lines_indices_capacity = GlobalRenderer.vertex_capacity / sizeof(Vertex);
+  GlobalRenderer.lines_indices_data     = ArenaPush(GlobalRenderer.arena, Vertex, GlobalRenderer.lines_indices_capacity);
   
   Arena_Temp scratch = scratch_begin(0, 0);
   
@@ -85,6 +91,10 @@ renderer_init(s32 window_width, s32 window_height) {
     glVertexArrayAttribFormat (GlobalRenderer.triangles_vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, normal));
     glVertexArrayAttribBinding(GlobalRenderer.triangles_vao, 3, 0);
     
+    glEnableVertexArrayAttrib (GlobalRenderer.triangles_vao, 4);
+    glVertexArrayAttribFormat (GlobalRenderer.triangles_vao, 4, 1, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, texture));
+    glVertexArrayAttribBinding(GlobalRenderer.triangles_vao, 4, 0);
+    
     glCreateBuffers(1, &GlobalRenderer.triangles_vbo);
     glNamedBufferData(GlobalRenderer.triangles_vbo, sizeof(Vertex) * 3 * Initial_Vertices, NULL, GL_DYNAMIC_DRAW);
     glVertexArrayVertexBuffer(GlobalRenderer.triangles_vao, 0, GlobalRenderer.triangles_vbo, 0, sizeof(Vertex));
@@ -112,14 +122,14 @@ renderer_init(s32 window_width, s32 window_height) {
     glVertexArrayAttribFormat (GlobalRenderer.lines_vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, normal));
     glVertexArrayAttribBinding(GlobalRenderer.lines_vao, 3, 0);
     
+    glEnableVertexArrayAttrib (GlobalRenderer.lines_vao, 4);
+    glVertexArrayAttribFormat (GlobalRenderer.lines_vao, 4, 1, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, texture));
+    glVertexArrayAttribBinding(GlobalRenderer.lines_vao, 4, 0);
+    
     glCreateBuffers(1, &GlobalRenderer.lines_vbo);
     glNamedBufferData(GlobalRenderer.lines_vbo, sizeof(Vertex) * Initial_Lines, NULL, GL_STATIC_DRAW);
     glVertexArrayVertexBuffer(GlobalRenderer.lines_vao, 0, GlobalRenderer.lines_vbo, 0, sizeof(Vertex));
   }
-  
-  GlobalRenderer.triangles_data         = ArenaPush(GlobalRenderer.arena, Vertex, Initial_Vertices*3);
-  GlobalRenderer.triangles_indices_data = ArenaPush(GlobalRenderer.arena, u32, Initial_Indices);
-  GlobalRenderer.lines_data             = ArenaPush(GlobalRenderer.arena, Vertex, Initial_Lines*2);
   
   // MSAA
   {
@@ -260,6 +270,50 @@ renderer_draw(Mat4f32 view, Mat4f32 projection, s32 window_width, s32 window_hei
   renderer_set_uniform_mat4fv(GlobalRenderer.main_shader, "u_view",       view);
   renderer_set_uniform_mat4fv(GlobalRenderer.main_shader, "u_projection", projection);
   
+  for (u32 i = 0; i < GlobalRenderer.textures_count; i += 1) {
+    glActiveTexture(GL_TEXTURE0 + i);
+    glBindTexture(GL_TEXTURE_2D, GlobalRenderer.textures_data[i]);
+  }
+  
+  // Draw to msaa_fbo
+  {
+    // Triangles
+    glBindVertexArray(GlobalRenderer.triangles_vao);
+    glNamedBufferSubData(GlobalRenderer.triangles_vbo, 0, GlobalRenderer.triangles_count * 3 * sizeof(Vertex), GlobalRenderer.triangles_data);
+    glNamedBufferSubData(GlobalRenderer.triangles_ebo, 0, GlobalRenderer.triangles_indices_count * sizeof(u32), GlobalRenderer.triangles_indices_data);
+    glDrawElements(GL_TRIANGLES, GlobalRenderer.triangles_count, GL_UNSIGNED_BYTE, NULL);
+    
+    // Lines
+    glBindVertexArray(GlobalRenderer.lines_vao);
+    glNamedBufferSubData(GlobalRenderer.lines_vbo, 0, GlobalRenderer.lines_count * 3 * sizeof(Vertex), GlobalRenderer.lines_data);
+    glDrawArrays(GL_LINES, 0, GlobalRenderer.lines_count * 3);
+    
+    glBindVertexArray(0);
+  }
+  
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, GlobalRenderer.msaa_fbo);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GlobalRenderer.post_processing_fbo);	
+  glBlitFramebuffer(0, 0, window_width, window_height, 0, 0, window_width, window_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+  
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  
+  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glDisable(GL_DEPTH_TEST);
+  
+  glUseProgram(GlobalRenderer.screen_shader);
+  glBindVertexArray(GlobalRenderer.screen_vao);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, GlobalRenderer.screen_texture);
+  
+  renderer_set_uniform_s32(GlobalRenderer.screen_shader, "u_window_width", window_width);
+  renderer_set_uniform_s32(GlobalRenderer.screen_shader, "u_window_height", window_height);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+  
+  glUseProgram(0);
+  glBindVertexArray(0);
+  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 internal void
@@ -342,6 +396,114 @@ renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a) {
   GlobalRenderer.textures_count += 1;
   
   return texture_index;
+}
+
+internal void
+renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture) {
+  if (GlobalRenderer.lines_count + 1 > GlobalRenderer.lines_capacity) {
+    printf("Error :: Renderer :: Too many lines!");
+    Assert(0);
+  }
+  
+  Vertex a = {
+    a_position,
+    vec4f32(1.0f, 1.0f, 1.0f, 1.0f),
+    vec2f32(0.0f, 0.0f),
+    vec3f32(0.0f, 0.0f, 0.0f),
+    texture
+  };
+  
+  Vertex b = {
+    b_position,
+    vec4f32(1.0f, 1.0f, 1.0f, 1.0f),
+    vec2f32(0.0f, 0.0f),
+    vec3f32(0.0f, 0.0f, 0.0f),
+    texture
+  };
+  
+  Vertex* data = GlobalRenderer.lines_data;
+  u32 index    = GlobalRenderer.lines_count * 2;
+  
+  data[index+0] = a;
+  data[index+1] = b;
+  
+  GlobalRenderer.lines_count += 1;
+}
+
+internal void
+renderer_push_triangle(Vertex a, Vertex b, Vertex c, u32 texture) {
+  // TODO(fz): Maybe we can try this but with a hash table?
+  
+  b32 a_exists = false;
+  b32 b_exists = false;
+  b32 c_exists = false;
+  
+  for (u32 i = 0; i < GlobalRenderer.triangles_count; i += 1) {
+    if (MemoryMatch(&a.position, &GlobalRenderer.triangles_data[i], sizeof(Vertex))) {
+      renderer_push_index(i);
+      a_exists = true;
+      break;
+    }
+    if (MemoryMatch(&b.position, &GlobalRenderer.triangles_data[i], sizeof(Vertex))) {
+      renderer_push_index(i);
+      b_exists = true;
+      break;
+    }
+    if (MemoryMatch(&c.position, &GlobalRenderer.triangles_data[i], sizeof(Vertex))) {
+      renderer_push_index(i);
+      c_exists = true;
+      break;
+    }
+  }
+  
+  if (!a_exists) {
+    renderer_push_index(GlobalRenderer.vertices_count);
+    renderer_push_vertex(a);
+  }
+  if (!b_exists) {
+    renderer_push_index(GlobalRenderer.vertices_count);
+    renderer_push_vertex(b);
+  }
+  if (!c_exists) {
+    renderer_push_index(GlobalRenderer.vertices_count);
+    renderer_push_vertex(c);
+  }
+}
+
+internal void
+renderer_push_vertex(Vertex v) {
+  if (GlobalRenderer.vertex_count + 1 > GlobalRenderer.vertex_capacity) {
+    printf("Too many vertices");
+    Assert(0);
+  }
+  GlobalRenderer.vertex_data[GlobalRenderer.vertex_count] = v;
+  GlobalRenderer.vertices_count += 1;
+}
+
+internal void
+renderer_push_index(u32 index) {
+  if (GlobalRenderer.indices_count + 1 > GlobalRenderer.triangles_indices_capacity) {
+    printf("Too many indices");
+    Assert(0);
+  }
+  GlobalRenderer.indices_data[GlobalRenderer.indices_count] = index;
+  GlobalRenderer.indices_count += 1;
+}
+
+internal void
+renderer_push_quad(Vec3f32 bot_left_point, Vec4f32 color, f32 width, f32 height, u32 texture) {
+  Vec3f32 a = bot_left_point;
+  Vec3f32 b = vec3f32(a.x+width, a.y,        a.z);
+  Vec3f32 c = vec3f32(a.x+width, a.y+height, a.z);
+  Vec3f32 d = vec3f32(a.x,       a.y+height, a.z);
+  
+  Vertex va = vertex(a, color, vec2f32(0.0f, 0.0f), vec3f32(0.0f, 0.0f, 0.0f), texture);
+  Vertex vb = vertex(b, color, vec2f32(1.0f, 0.0f), vec3f32(0.0f, 0.0f, 0.0f), texture);
+  Vertex vc = vertex(c, color, vec2f32(1.0f, 1.0f), vec3f32(0.0f, 0.0f, 0.0f), texture);
+  Vertex vd = vertex(d, color, vec2f32(0.0f, 1.0f), vec3f32(0.0f, 0.0f, 0.0f), texture);
+  
+  renderer_push_triangle(a, b, c, texture);
+  renderer_push_triangle(a, c, d, texture);
 }
 
 internal void

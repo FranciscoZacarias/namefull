@@ -61,8 +61,8 @@ typedef struct Program {
 } Program;
 
 Program GlobalProgram;
-internal void window_init();
-internal void window_tick();
+internal void program_init();
+internal void program_tick();
 
 // Glfw 
 internal void framebuffer_size_callback(GLFWwindow* window, int width, int height);
