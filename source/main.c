@@ -1,5 +1,7 @@
 #include "main.h"
 
+#define Color_White vec4f32(1.0f, 1.0f, 1.0f, 1.0f)
+
 int 
 main(int argc, char** argv) {
   os_init();
@@ -9,13 +11,16 @@ main(int argc, char** argv) {
   program_init();
   renderer_init(GlobalProgram.window_width, GlobalProgram.window_height);
   
-  
   u32 texture_red   = renderer_load_color_texture(1.0, 0.0, 0.0, 1.0);
   u32 texture_green = renderer_load_color_texture(0.0, 1.0, 0.0, 1.0);
   u32 texture_blue  = renderer_load_color_texture(0.0, 0.0, 1.0, 1.0);
-  renderer_push_line(vec3f32(-100.0f,    0.0f,    0.0f),  vec3f32(100.0f,   0.0f,   0.0f), texture_red);
-  renderer_push_line(vec3f32(   0.0f, -100.0f,    0.0f),  vec3f32(  0.0f, 100.0f,   0.0f), texture_green);
-  renderer_push_line(vec3f32(   0.0f,    0.0f, -100.0f),  vec3f32(  0.0f,   0.0f, 100.0f), texture_blue);
+  
+  renderer_push_line(vec3f32(-8.0f,  0.0f,  0.0f),  vec3f32(8.0f, 0.0f, 0.0f), texture_blue);
+  renderer_push_line(vec3f32( 0.0f, -8.0f,  0.0f),  vec3f32(0.0f, 8.0f, 0.0f), texture_green);
+  renderer_push_line(vec3f32( 0.0f,  0.0f, -8.0f),  vec3f32(0.0f, 0.0f, 8.0f), texture_blue);
+  
+  // renderer_push_quad(vec3f32(2.0f, 2.0f, -2.0f), Color_White, 5.0f, 5.0f, texture_green);
+  // renderer_push_quad(vec3f32(-7.0f, 2.0f, -2.0f), Color_White, 5.0f, 5.0f, texture_blue);
   
   while (GlobalProgram.is_running) {
     program_tick();

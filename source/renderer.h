@@ -31,10 +31,6 @@ typedef struct Renderer {
   u32 vertex_vbo;
   u32 vertex_ebo;
   
-  u32 lines_vao;
-  u32 lines_vbo;
-  u32 lines_ebo;
-  
   // Offscreen 
   u32 msaa_fbo;
   u32 msaa_rbo;
@@ -81,8 +77,9 @@ internal u32 renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a);
 internal void renderer_push_quad(Vec3f32 bot_left_point, Vec4f32 color, f32 width, f32 height, u32 texture);
 internal void renderer_push_triangle(Vertex a, Vertex b, Vertex c, u32 texture);
 internal void renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture);
-internal void renderer_push_vertex(Vertex v);
-internal void renderer_push_index(u32 index);
+internal u32  renderer_push_vertex(Vertex v);
+internal void renderer_push_triangle_index(u32 index);
+internal void renderer_push_line_index(u32 index);
 
 internal void renderer_set_uniform_mat4fv(u32 program, const char* uniform, Mat4f32 mat);
 internal void renderer_set_array_s32(u32 program, const char* uniform, s32 count, s32* ptr);
