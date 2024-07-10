@@ -14,10 +14,11 @@ main(int argc, char** argv) {
   u32 texture_red   = renderer_load_color_texture(1.0, 0.0, 0.0, 1.0);
   u32 texture_green = renderer_load_color_texture(0.0, 1.0, 0.0, 1.0);
   u32 texture_blue  = renderer_load_color_texture(0.0, 0.0, 1.0, 1.0);
+  u32 texture_yell  = renderer_load_color_texture(1.0, 1.0, 0.0, 1.0);
   
-  renderer_push_line(vec3f32(-8.0f,  0.0f,  0.0f),  vec3f32(8.0f, 0.0f, 0.0f), texture_blue);
-  renderer_push_line(vec3f32( 0.0f, -8.0f,  0.0f),  vec3f32(0.0f, 8.0f, 0.0f), texture_green);
-  renderer_push_line(vec3f32( 0.0f,  0.0f, -8.0f),  vec3f32(0.0f, 0.0f, 8.0f), texture_blue);
+  renderer_push_line(vec3f32(-8.0f,  0.0f,  0.0f), vec3f32(8.0f, 0.0f, 0.0f), texture_red);
+  renderer_push_line(vec3f32( 0.0f, -8.0f,  0.0f), vec3f32(0.0f, 8.0f, 0.0f), texture_green);
+  renderer_push_line(vec3f32( 0.0f,  0.0f, -8.0f), vec3f32(0.0f, 0.0f, 8.0f), texture_blue);
   
   // renderer_push_quad(vec3f32(2.0f, 2.0f, -2.0f), Color_White, 5.0f, 5.0f, texture_green);
   // renderer_push_quad(vec3f32(-7.0f, 2.0f, -2.0f), Color_White, 5.0f, 5.0f, texture_blue);

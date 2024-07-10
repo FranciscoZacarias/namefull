@@ -1,9 +1,3 @@
-internal Vertex
-vertex(Vec3f32 position, Vec4f32 color, Vec2f32 uv, Vec3f32 normal, u32 texture) {
-  Vertex result = (Vertex) { position, color, uv, normal, texture };
-  return result;
-}
-
 internal void
 renderer_init(s32 window_width, s32 window_height) {
   AssertNoReentry();
@@ -88,21 +82,19 @@ renderer_init(s32 window_width, s32 window_height) {
     glVertexArrayAttribBinding(GlobalRenderer.vertex_vao, 2, 0);
     
     glEnableVertexArrayAttrib (GlobalRenderer.vertex_vao, 3);
-    glVertexArrayAttribFormat (GlobalRenderer.vertex_vao, 3, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, normal));
+    glVertexArrayAttribFormat (GlobalRenderer.vertex_vao, 3, 1, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, texture));
     glVertexArrayAttribBinding(GlobalRenderer.vertex_vao, 3, 0);
     
-    glEnableVertexArrayAttrib (GlobalRenderer.vertex_vao, 4);
-    glVertexArrayAttribFormat (GlobalRenderer.vertex_vao, 4, 1, GL_UNSIGNED_INT, GL_FALSE, OffsetOfMember(Vertex, texture));
-    glVertexArrayAttribBinding(GlobalRenderer.vertex_vao, 4, 0);
-    
     glCreateBuffers(1, &GlobalRenderer.vertex_vbo);
-    glNamedBufferData(GlobalRenderer.vertex_vbo, sizeof(Vertex) * 3 * Initial_Vertices, NULL, GL_STATIC_DRAW);
+    glNamedBufferData(GlobalRenderer.vertex_vbo, sizeof(Vertex) * Initial_Vertices, NULL, GL_STATIC_DRAW);
     glVertexArrayVertexBuffer(GlobalRenderer.vertex_vao, 0, GlobalRenderer.vertex_vbo, 0, sizeof(Vertex));
-    
-    glCreateBuffers(1, &GlobalRenderer.vertex_ebo);
-    glNamedBufferData(GlobalRenderer.vertex_ebo, sizeof(u32) * Initial_Indices, NULL, GL_STATIC_DRAW);
-    glVertexArrayElementBuffer(GlobalRenderer.vertex_vao, GlobalRenderer.vertex_ebo);
   }
+  
+  glCreateBuffers(1, &GlobalRenderer.triangles_ebo);
+  glNamedBufferData(GlobalRenderer.triangles_ebo, sizeof(u32) * Initial_Indices, NULL, GL_STATIC_DRAW);
+  
+  glCreateBuffers(1, &GlobalRenderer.lines_ebo);
+  glNamedBufferData(GlobalRenderer.lines_ebo, sizeof(u32) * Initial_Indices, NULL, GL_STATIC_DRAW);
   
   // MSAA
   {
@@ -256,13 +248,14 @@ renderer_draw(Mat4f32 view, Mat4f32 projection, s32 window_width, s32 window_hei
     // glBindVertexArray(GlobalRenderer.vertex_vao);
     // glNamedBufferSubData(GlobalRenderer.vertex_vbo, 0, GlobalRenderer.vertex_count * sizeof(Vertex), GlobalRenderer.vertex_data);
     // glNamedBufferSubData(GlobalRenderer.vertex_ebo, 0, GlobalRenderer.triangles_indices_count * sizeof(u32), GlobalRenderer.triangles_indices_data);
-    // glDrawElements(GL_TRIANGLES, GlobalRenderer.triangles_indices_count, GL_UNSIGNED_BYTE, NULL);
+    // glDrawElements(GL_TRIANGLES, GlobalRenderer.triangles_indices_count, GL_UNSIGNED_INT, NULL);
     
     // Lines
     glBindVertexArray(GlobalRenderer.vertex_vao);
+    glVertexArrayElementBuffer(GlobalRenderer.vertex_vao, GlobalRenderer.lines_ebo);
     glNamedBufferSubData(GlobalRenderer.vertex_vbo, 0, GlobalRenderer.vertex_count * sizeof(Vertex), GlobalRenderer.vertex_data);
-    glNamedBufferSubData(GlobalRenderer.vertex_ebo, 0, GlobalRenderer.lines_indices_count * sizeof(u32), GlobalRenderer.lines_indices_data);
-    glDrawElements(GL_LINES, GlobalRenderer.lines_indices_count, GL_UNSIGNED_BYTE, NULL);
+    glNamedBufferSubData(GlobalRenderer.lines_ebo, 0, GlobalRenderer.lines_indices_count * sizeof(u32), GlobalRenderer.lines_indices_data);
+    glDrawElements(GL_LINES, GlobalRenderer.lines_indices_count, GL_UNSIGNED_INT, NULL);
     
     glBindVertexArray(0);
   }
@@ -385,7 +378,6 @@ renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture) {
     a_position,
     vec4f32(1.0f, 1.0f, 1.0f, 1.0f),
     vec2f32(0.0f, 0.0f),
-    vec3f32(5.0f, 6.0f, 7.0f),
     texture
   };
   
@@ -393,7 +385,6 @@ renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture) {
     b_position,
     vec4f32(1.0f, 1.0f, 1.0f, 1.0f),
     vec2f32(0.0f, 0.0f),
-    vec3f32(8.0f, 9.0f, 10.0f),
     texture
   };
   
@@ -471,10 +462,10 @@ renderer_push_quad(Vec3f32 bot_left_point, Vec4f32 color, f32 width, f32 height,
   Vec3f32 c = vec3f32(a.x+width, a.y+height, a.z);
   Vec3f32 d = vec3f32(a.x,       a.y+height, a.z);
   
-  Vertex va = vertex(a, color, vec2f32(0.0f, 0.0f), vec3f32(0.0f, 0.0f, 0.0f), texture);
-  Vertex vb = vertex(b, color, vec2f32(1.0f, 0.0f), vec3f32(0.0f, 0.0f, 0.0f), texture);
-  Vertex vc = vertex(c, color, vec2f32(1.0f, 1.0f), vec3f32(0.0f, 0.0f, 0.0f), texture);
-  Vertex vd = vertex(d, color, vec2f32(0.0f, 1.0f), vec3f32(0.0f, 0.0f, 0.0f), texture);
+  Vertex va = vertex(a, color, vec2f32(0.0f, 0.0f), texture);
+  Vertex vb = vertex(b, color, vec2f32(1.0f, 0.0f), texture);
+  Vertex vc = vertex(c, color, vec2f32(1.0f, 1.0f), texture);
+  Vertex vd = vertex(d, color, vec2f32(0.0f, 1.0f), texture);
   
   renderer_push_triangle(va, vb, vc, texture);
   renderer_push_triangle(va, vc, vd, texture);

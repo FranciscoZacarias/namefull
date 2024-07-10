@@ -19,9 +19,10 @@ typedef struct Vertex {
   Vec3f32 position;
   Vec4f32 color;
   Vec2f32 uv;
-  Vec3f32 normal;
   u32 texture;
 } Vertex;
+
+#define vertex(p,c,u,t) (Vertex){p,c,u,t}
 
 typedef struct Renderer {
   
@@ -29,7 +30,6 @@ typedef struct Renderer {
   
   u32 vertex_vao;
   u32 vertex_vbo;
-  u32 vertex_ebo;
   
   // Offscreen 
   u32 msaa_fbo;
@@ -52,11 +52,13 @@ typedef struct Renderer {
   u32     vertex_capacity;
   
   // Indices data
+  u32  triangles_ebo;
   u32* triangles_indices_data;
   u32  triangles_indices_count;
   u32  triangles_indices_capacity;
   
   // Lines data
+  u32  lines_ebo;
   u32* lines_indices_data;
   u32  lines_indices_count;
   u32  lines_indices_capacity;
