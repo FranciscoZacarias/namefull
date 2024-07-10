@@ -1,5 +1,6 @@
 internal Camera camera_init() {
   AssertNoReentry();
+  
 	Camera camera;
 	camera.position = vec3f32(-9.21f, 5.45f, 14.81f);
 	camera.front = vec3f32(0.56f, -0.31f, -0.77f);
@@ -14,26 +15,26 @@ internal Camera camera_init() {
 }
 
 internal void print_camera(Camera camera) {
-  print_vec3f32(camera.position, "camera.position =");
-  print_vec3f32(camera.front, "camera.front =");
-  print_vec3f32(camera.up, "camera.up =");
-  print_vec3f32(camera.right, "camera.right =");
-  printf("camera.pitch = %.2ff;\ncamera.yaw = %.2ff;\n-------------\n", camera.pitch, camera.yaw);
+  print_vec3f32(camera.position, "camera.position = ");
+  print_vec3f32(camera.front,    "camera.front    = ");
+  print_vec3f32(camera.up,       "camera.up       = ");
+  print_vec3f32(camera.right,    "camera.right    = ");
+  printf("camera.pitch    = %.2ff;\ncamera.yaw      = %.2ff;\n-------------\n", camera.pitch, camera.yaw);
 }
 
-internal void camera_update(Camera* camera, Input_State input_state, f32 delta_time) {
+internal void camera_update(Camera* camera, f32 delta_time) {
   local_persist b32 was_right_mouse_button_down = 0;
   
   if (input_is_button_down(MouseButton_Right)) {
     if (!was_right_mouse_button_down) {
 			// Reset the previous mouse position to the current position
-			input_state.mouse_previous.screen_space_x = input_state.mouse_current.screen_space_x;
-			input_state.mouse_previous.screen_space_y = input_state.mouse_current.screen_space_y;
+			InputState.mouse_previous.screen_space_x = InputState.mouse_current.screen_space_x;
+			InputState.mouse_previous.screen_space_y = InputState.mouse_current.screen_space_y;
 			was_right_mouse_button_down = 1;
 		}
     
     camera->mode = CameraMode_Fly;
-    f32 camera_speed = CAMERA_SPEED;
+    f32 camera_speed = (CAMERA_SPEED * delta_time);
     
     if (input_is_key_down(KeyboardKey_W)) {
       Vec3f32 delta = scale_vec3f32(camera->front, camera_speed);
@@ -60,8 +61,8 @@ internal void camera_update(Camera* camera, Input_State input_state, f32 delta_t
       camera->position.y += camera_speed;
     }
     
-    f32 x_offset = input_state.mouse_current.screen_space_x - input_state.mouse_previous.screen_space_x;
-    f32 y_offset = input_state.mouse_previous.screen_space_y - input_state.mouse_current.screen_space_y;
+    f32 x_offset = InputState.mouse_current.screen_space_x  - InputState.mouse_previous.screen_space_x;
+    f32 y_offset = InputState.mouse_previous.screen_space_y - InputState.mouse_current.screen_space_y;
     
     camera->yaw   += (x_offset * CAMERA_SENSITIVITY);
     camera->pitch += (y_offset * CAMERA_SENSITIVITY);

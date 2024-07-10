@@ -54,13 +54,12 @@ typedef struct Program {
   f32 near_plane;
   f32 far_plane;
   
-  Input_State input_state;
-  
   Vec3f32 raycast;
   b32 is_running;
 } Program;
 
 Program GlobalProgram;
+
 internal void program_init();
 internal void program_tick();
 

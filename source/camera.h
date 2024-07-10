@@ -5,7 +5,7 @@
 
 #define CAMERA_YAW         -90.0f
 #define CAMERA_PITCH        0.0f
-#define CAMERA_SENSITIVITY  0.1f
+#define CAMERA_SENSITIVITY  0.2f
 #define WORLD_UP            vec3f32(0.0f, 1.0f, 0.0f)
 #define CAMERA_SPEED        16.0f
 
@@ -38,7 +38,7 @@ typedef struct Camera {
 
 internal Camera camera_init();
 internal void print_camera(Camera camera);
-internal void camera_update(Camera* camera, Input_State input_state, f32 delta_time);
+internal void camera_update(Camera* camera, f32 delta_time);
 internal void camera_mouse_callback(Camera* camera, f64 x_pos, f64 y_pos);
 internal void _camera_update(Camera* camera);
 

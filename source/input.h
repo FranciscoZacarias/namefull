@@ -3,7 +3,6 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-
 typedef enum Mouse_Button {
   MouseButton_Left,
   MouseButton_Right,
@@ -152,6 +151,7 @@ typedef struct Keyboard_State {
   b8 keys[KEYBOARD_STATE_SIZE];
 } Keyboard_State;
 
+// TODO(fz): Replace the current Mouse_State with this _Mouse_State
 typedef struct Mouse_State {
   union {
     struct {
@@ -170,9 +170,9 @@ typedef struct Input_State {
   Mouse_State   mouse_previous;
 } Input_State;
 
-Input_State* __global_input_state = NULL;
+global Input_State InputState = { 0 };
 
-internal void input_init(Input_State* state, s32 window_width, s32 window_height);
+internal void input_inits(s32 window_width, s32 window_height);
 internal void input_update();
 
 //~ Keyboard keys

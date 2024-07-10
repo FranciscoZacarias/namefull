@@ -1,9 +1,6 @@
 #include "main.h"
 
-#define Color_White vec4f32(1.0f, 1.0f, 1.0f, 1.0f)
-
-int 
-main(int argc, char** argv) {
+int main(int argc, char** argv) {
   os_init();
   Thread_Context main_thread_context;
   thread_context_init_and_attach(&main_thread_context);
@@ -11,23 +8,20 @@ main(int argc, char** argv) {
   program_init();
   renderer_init(GlobalProgram.window_width, GlobalProgram.window_height);
   
-  u32 texture_red   = renderer_load_color_texture(1.0, 0.0, 0.0, 1.0);
-  u32 texture_green = renderer_load_color_texture(0.0, 1.0, 0.0, 1.0);
-  u32 texture_blue  = renderer_load_color_texture(0.0, 0.0, 1.0, 1.0);
-  u32 texture_yell  = renderer_load_color_texture(1.0, 1.0, 0.0, 1.0);
+  f32 texture_red   = renderer_load_color_texture(1.0, 0.0, 0.0, 1.0);
+  f32 texture_green = renderer_load_color_texture(0.0, 1.0, 0.0, 1.0);
+  f32 texture_blue  = renderer_load_color_texture(0.0, 0.0, 1.0, 1.0);
+  f32 texture_yell  = renderer_load_color_texture(1.0, 1.0, 0.0, 1.0);
   
   renderer_push_line(vec3f32(-8.0f,  0.0f,  0.0f), vec3f32(8.0f, 0.0f, 0.0f), texture_red);
   renderer_push_line(vec3f32( 0.0f, -8.0f,  0.0f), vec3f32(0.0f, 8.0f, 0.0f), texture_green);
   renderer_push_line(vec3f32( 0.0f,  0.0f, -8.0f), vec3f32(0.0f, 0.0f, 8.0f), texture_blue);
   
-  // renderer_push_quad(vec3f32(2.0f, 2.0f, -2.0f), Color_White, 5.0f, 5.0f, texture_green);
-  // renderer_push_quad(vec3f32(-7.0f, 2.0f, -2.0f), Color_White, 5.0f, 5.0f, texture_blue);
-  
   while (GlobalProgram.is_running) {
     program_tick();
-    
+
     renderer_draw(GlobalProgram.view, GlobalProgram.projection, GlobalProgram.window_width, GlobalProgram.window_height);
-    
+
     glfwSwapBuffers(GlobalProgram.window);
   }
   
@@ -36,20 +30,21 @@ main(int argc, char** argv) {
 
 internal void
 program_tick() {
+  input_update(); 
   glfwPollEvents();
   
   GlobalProgram.view = look_at_mat4f32(GlobalProgram.camera.position, add_vec3f32(GlobalProgram.camera.position, GlobalProgram.camera.front), GlobalProgram.camera.up);
   GlobalProgram.projection = perspective_mat4f32(Radians(45), GlobalProgram.window_width, GlobalProgram.window_height, GlobalProgram.near_plane, GlobalProgram.far_plane);
   
-  camera_update(&GlobalProgram.camera, GlobalProgram.input_state, GlobalProgram.delta_time);
+  camera_update(&GlobalProgram.camera, GlobalProgram.delta_time);
   
   GlobalProgram.current_time = glfwGetTime();
   GlobalProgram.delta_time   = GlobalProgram.current_time - GlobalProgram.last_time;;
   GlobalProgram.last_time    = GlobalProgram.current_time;
   
   if (GlobalProgram.camera.mode == CameraMode_Select) {
-    f32 mouse_x_ndc = (2.0f * GlobalProgram.input_state.mouse_current.screen_space_x) / GlobalProgram.window_width - 1.0f;
-    f32 mouse_y_ndc = 1.0f - (2.0f * GlobalProgram.input_state.mouse_current.screen_space_y) / GlobalProgram.window_height;
+    f32 mouse_x_ndc = (2.0f * InputState.mouse_current.screen_space_x) / GlobalProgram.window_width - 1.0f;
+    f32 mouse_y_ndc = 1.0f - (2.0f * InputState.mouse_current.screen_space_y) / GlobalProgram.window_height;
     
     Vec3f32 unproject_mouse = unproject_vec3f32(vec3f32(mouse_x_ndc, mouse_y_ndc, 1.0f), GlobalProgram.projection, GlobalProgram.view);
     GlobalProgram.raycast = normalize_vec3f32(sub_vec3f32(vec3f32(unproject_mouse.x, unproject_mouse.y, unproject_mouse.z), vec3f32(GlobalProgram.camera.position.x, GlobalProgram.camera.position.y, GlobalProgram.camera.position.z)));
@@ -82,7 +77,7 @@ program_init() {
   GlobalProgram.is_running = true;
   
   GlobalProgram.camera      = camera_init();
-  input_init(&GlobalProgram.input_state, GlobalProgram.window_width, GlobalProgram.window_height);
+  input_init(GlobalProgram.window_width, GlobalProgram.window_height);
   
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
