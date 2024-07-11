@@ -7,7 +7,7 @@ set cl_default_flags=/Isource /nologo /FC /Zi /MDd
 
 set external_include= /I"..\source\external\opengl" ^
 											/I"..\source\external\glfw-3.3.9\include" ^
-											/I"..\source\f_base"
+											/I"..\source\f_base" 
 
 set linker_flags= user32.lib ^
 									gdi32.lib ^

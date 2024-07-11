@@ -17,8 +17,6 @@ int main(int argc, char** argv) {
   renderer_push_line(vec3f32( 0.0f, -8.0f,  0.0f), vec3f32(0.0f, 8.0f, 0.0f), texture_green);
   renderer_push_line(vec3f32( 0.0f,  0.0f, -8.0f), vec3f32(0.0f, 0.0f, 8.0f), texture_blue);
 
-  renderer_push_quad(vec3f32(2.0f, 2.0f, -2.0f), vec4f32(1.0f, 1.0f, 1.0f, 1.0f), 3.0f, 3.0f, texture_green);
-  
   while (GProgram.is_running) {
     program_tick();
 

@@ -3,12 +3,12 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#define MSAA_SAMPLES 8
-
 #define MAIN_VS   "D:\\work\\namefull\\source\\shaders\\vs_main.glsl"
 #define MAIN_FS   "D:\\work\\namefull\\source\\shaders\\fs_main.glsl"
 #define SCREEN_VS "D:\\work\\namefull\\source\\shaders\\vs_screen.glsl"
 #define SCREEN_FS "D:\\work\\namefull\\source\\shaders\\fs_screen.glsl"
+
+#define MSAA_SAMPLES 8
 
 #define Initial_Vertices 1024
 #define Initial_Lines    3
@@ -20,7 +20,7 @@ typedef struct Vertex {
   Vec4f32 color;
   Vec2f32 uv;
   Vec3f32 normal;
-  f32 texture;
+  f32     texture;
 } Vertex;
 
 #define vertex(position,color,uv,normal,texture) (Vertex){position,color,uv,normal,texture}
@@ -73,7 +73,6 @@ internal void renderer_on_resize(s32 window_width, s32 window_height);
 
 internal f32 renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a);
 
-internal void  renderer_push_quad(Vec3f32 bot_left_point, Vec4f32 color, f32 width, f32 height, u32 texture);
 internal void  renderer_push_triangle(Vertex a, Vertex b, Vertex c);
 internal void  renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture);
 

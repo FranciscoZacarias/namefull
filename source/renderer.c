@@ -385,31 +385,6 @@ renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a) {
 }
 
 internal void
-renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture) {
-  if (GRenderer.lines_indices_count + 3 > GRenderer.lines_indices_capacity) {
-    printf("Too many lines indices");
-    Assert(0);
-  }
-  if (GRenderer.vertices_count + 3 > GRenderer.vertices_capacity) {
-    printf("Too many vertices");
-    Assert(0);
-  }
-
-  Vertex a = vertex(a_position, vec4f32(1.0f, 1.0f, 1.0f, 1.0f), vec2f32(0.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
-  Vertex b = vertex(b_position, vec4f32(1.0f, 1.0f, 1.0f, 1.0f), vec2f32(0.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
-  
-  GRenderer.vertices_data[GRenderer.vertices_count] = a;
-  GRenderer.lines_indices_data[GRenderer.lines_indices_count] = GRenderer.vertices_count;
-  GRenderer.vertices_count += 1;
-  GRenderer.lines_indices_count += 1;
-  
-  GRenderer.vertices_data[GRenderer.vertices_count] = b;
-  GRenderer.lines_indices_data[GRenderer.lines_indices_count] = GRenderer.vertices_count;
-  GRenderer.vertices_count += 1;
-  GRenderer.lines_indices_count += 1;
-}
-
-internal void
 renderer_push_triangle(Vertex a, Vertex b, Vertex c) {
   if (GRenderer.triangles_indices_count + 3 > GRenderer.triangles_indices_capacity) {
     printf("Too many triangles indices");
@@ -469,19 +444,51 @@ renderer_push_triangle(Vertex a, Vertex b, Vertex c) {
 }
 
 internal void
-renderer_push_quad(Vec3f32 bot_left_point, Vec4f32 color, f32 width, f32 height, u32 texture) {
-  Vec3f32 a = bot_left_point;
-  Vec3f32 b = vec3f32(a.x+width, a.y,        a.z);
-  Vec3f32 c = vec3f32(a.x+width, a.y+height, a.z);
-  Vec3f32 d = vec3f32(a.x,       a.y+height, a.z);
+renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture) {
+  if (GRenderer.lines_indices_count + 3 > GRenderer.lines_indices_capacity) {
+    printf("Too many lines indices");
+    Assert(0);
+  }
+  if (GRenderer.vertices_count + 3 > GRenderer.vertices_capacity) {
+    printf("Too many vertices");
+    Assert(0);
+  }
+
+  Vertex a = vertex(a_position, vec4f32(1.0f, 1.0f, 1.0f, 1.0f), vec2f32(0.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
+  Vertex b = vertex(b_position, vec4f32(1.0f, 1.0f, 1.0f, 1.0f), vec2f32(0.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
   
-  Vertex va = vertex(a, color, vec2f32(0.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
-  Vertex vb = vertex(b, color, vec2f32(1.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
-  Vertex vc = vertex(c, color, vec2f32(1.0f, 1.0f), vec3f32(0.0, 0.0, 0.0), texture);
-  Vertex vd = vertex(d, color, vec2f32(0.0f, 1.0f), vec3f32(0.0, 0.0, 0.0), texture);
-  
-  renderer_push_triangle(va, vb, vc);
-  renderer_push_triangle(va, vc, vd);
+  b32 a_exists = false;
+  b32 b_exists = false;
+  for (u32 i = 0; i < GRenderer.vertices_count; i += 1) {
+    Vertex it = GRenderer.vertices_data[i];
+
+    if (!a_exists && MemoryMatch(&it, &a, sizeof(Vertex))) {
+      GRenderer.lines_indices_data[GRenderer.lines_indices_count] = i;
+      GRenderer.lines_indices_count += 1;
+      a_exists = true;
+    }
+    if (!b_exists && MemoryMatch(&it, &b, sizeof(Vertex))) {
+      GRenderer.lines_indices_data[GRenderer.lines_indices_count] = i;
+      GRenderer.lines_indices_count += 1;
+      b_exists = true;
+    }
+    if (a_exists && b_exists) {
+      break;
+    }
+  }
+
+  if (!a_exists) {
+    GRenderer.vertices_data[GRenderer.vertices_count] = a;
+    GRenderer.lines_indices_data[GRenderer.lines_indices_count] = GRenderer.vertices_count;
+    GRenderer.vertices_count      += 1;
+    GRenderer.lines_indices_count += 1;
+  }
+  if (!b_exists) {
+    GRenderer.vertices_data[GRenderer.vertices_count] = b;
+    GRenderer.lines_indices_data[GRenderer.lines_indices_count] = GRenderer.vertices_count;
+    GRenderer.vertices_count      += 1;
+    GRenderer.lines_indices_count += 1;
+  }
 }
 
 internal void
