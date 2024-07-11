@@ -2,25 +2,25 @@ internal void
 renderer_init(s32 window_width, s32 window_height) {
   AssertNoReentry();
   
-  MemoryZeroStruct(&GlobalRenderer);
+  MemoryZeroStruct(&GRenderer);
   
-  GlobalRenderer.arena = arena_init();
+  GRenderer.arena = arena_init();
   
-  GlobalRenderer.vertices.capacity = Kilobytes(64);
-  GlobalRenderer.vertices.data  = ArenaPush(GlobalRenderer.arena, Vertex, GlobalRenderer.vertices.capacity);
-  GlobalRenderer.vertices.count = 0;
+  GRenderer.vertices_capacity = Kilobytes(64);
+  GRenderer.vertices_data  = ArenaPush(GRenderer.arena, Vertex, GRenderer.vertices_capacity);
+  GRenderer.vertices_count = 0;
   
-  GlobalRenderer.triangles.indices_capacity = Kilobytes(16);
-  GlobalRenderer.triangles.indices_data  = (u32*)ArenaPush(GlobalRenderer.arena, u32, GlobalRenderer.triangles.indices_capacity);
-  GlobalRenderer.triangles.indices_count = 0;
+  GRenderer.triangles_indices_capacity = Kilobytes(16);
+  GRenderer.triangles_indices_data  = (u32*)ArenaPush(GRenderer.arena, u32, GRenderer.triangles_indices_capacity);
+  GRenderer.triangles_indices_count = 0;
   
-  GlobalRenderer.lines.indices_capacity = Kilobytes(16);
-  GlobalRenderer.lines.indices_data  = ArenaPush(GlobalRenderer.arena, u32, GlobalRenderer.lines.indices_capacity);
-  GlobalRenderer.lines.indices_count = 0;
+  GRenderer.lines_indices_capacity = Kilobytes(16);
+  GRenderer.lines_indices_data  = ArenaPush(GRenderer.arena, u32, GRenderer.lines_indices_capacity);
+  GRenderer.lines_indices_count = 0;
   
-  GlobalRenderer.textures.capacity = Initial_Textures;
-  GlobalRenderer.textures.data  = ArenaPush(GlobalRenderer.arena, u32, GlobalRenderer.textures.capacity);
-  GlobalRenderer.textures.count = 0;
+  GRenderer.textures_capacity = Initial_Textures;
+  GRenderer.textures_data  = ArenaPush(GRenderer.arena, u32, GRenderer.textures_capacity);
+  GRenderer.textures_count = 0;
   
   Arena_Temp scratch = scratch_begin(0, 0);
   
@@ -54,71 +54,75 @@ renderer_init(s32 window_width, s32 window_height) {
     }
   }
   
-  GlobalRenderer.main_shader = glCreateProgram();
+  GRenderer.main_shader = glCreateProgram();
   {
-    glAttachShader(GlobalRenderer.main_shader, vertex_shader);
-    glAttachShader(GlobalRenderer.main_shader, fragment_shader);
-    glLinkProgram(GlobalRenderer.main_shader);
+    glAttachShader(GRenderer.main_shader, vertex_shader);
+    glAttachShader(GRenderer.main_shader, fragment_shader);
+    glLinkProgram(GRenderer.main_shader);
     s32 success;
-    glGetProgramiv(GlobalRenderer.main_shader, GL_LINK_STATUS, &success);
+    glGetProgramiv(GRenderer.main_shader, GL_LINK_STATUS, &success);
     if(!success) {
       char infoLog[1024];
-      glGetProgramInfoLog(GlobalRenderer.main_shader, 1024, NULL, infoLog);
+      glGetProgramInfoLog(GRenderer.main_shader, 1024, NULL, infoLog);
       printf("Error %d linking shader program. Log: %s", success, infoLog);
       Assert(0);
     }
   }
   
-  glDetachShader(GlobalRenderer.main_shader, vertex_shader);
-  glDetachShader(GlobalRenderer.main_shader, fragment_shader);
+  glDetachShader(GRenderer.main_shader, vertex_shader);
+  glDetachShader(GRenderer.main_shader, fragment_shader);
   glDeleteShader(vertex_shader);
   glDeleteShader(fragment_shader);
   
-  glCreateVertexArrays(1, &GlobalRenderer.vertices.vao);
+  glCreateVertexArrays(1, &GRenderer.vertices_vao);
   {
-    glEnableVertexArrayAttrib (GlobalRenderer.vertices.vao, 0);
-    glVertexArrayAttribFormat (GlobalRenderer.vertices.vao, 0, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, position));
-    glVertexArrayAttribBinding(GlobalRenderer.vertices.vao, 0, 0);
+    glEnableVertexArrayAttrib (GRenderer.vertices_vao, 0);
+    glVertexArrayAttribFormat (GRenderer.vertices_vao, 0, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, position));
+    glVertexArrayAttribBinding(GRenderer.vertices_vao, 0, 0);
     
-    glEnableVertexArrayAttrib (GlobalRenderer.vertices.vao, 1);
-    glVertexArrayAttribFormat (GlobalRenderer.vertices.vao, 1, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, color));
-    glVertexArrayAttribBinding(GlobalRenderer.vertices.vao, 1, 0);
+    glEnableVertexArrayAttrib (GRenderer.vertices_vao, 1);
+    glVertexArrayAttribFormat (GRenderer.vertices_vao, 1, 4, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, color));
+    glVertexArrayAttribBinding(GRenderer.vertices_vao, 1, 0);
     
-    glEnableVertexArrayAttrib (GlobalRenderer.vertices.vao, 2);
-    glVertexArrayAttribFormat (GlobalRenderer.vertices.vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, uv));
-    glVertexArrayAttribBinding(GlobalRenderer.vertices.vao, 2, 0);
+    glEnableVertexArrayAttrib (GRenderer.vertices_vao, 2);
+    glVertexArrayAttribFormat (GRenderer.vertices_vao, 2, 2, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, uv));
+    glVertexArrayAttribBinding(GRenderer.vertices_vao, 2, 0);
     
-    glEnableVertexArrayAttrib (GlobalRenderer.vertices.vao, 3);
-    glVertexArrayAttribFormat (GlobalRenderer.vertices.vao, 3, 1, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, texture));
-    glVertexArrayAttribBinding(GlobalRenderer.vertices.vao, 3, 0);
+    glEnableVertexArrayAttrib (GRenderer.vertices_vao, 4);
+    glVertexArrayAttribFormat (GRenderer.vertices_vao, 4, 3, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, normal));
+    glVertexArrayAttribBinding(GRenderer.vertices_vao, 4, 0);
+
+    glEnableVertexArrayAttrib (GRenderer.vertices_vao, 4);
+    glVertexArrayAttribFormat (GRenderer.vertices_vao, 4, 1, GL_FLOAT, GL_FALSE, OffsetOfMember(Vertex, texture));
+    glVertexArrayAttribBinding(GRenderer.vertices_vao, 4, 0);
     
-    glCreateBuffers(1, &GlobalRenderer.vertices.vbo);
-    glNamedBufferData(GlobalRenderer.vertices.vbo, sizeof(Vertex) * Initial_Vertices, NULL, GL_STATIC_DRAW);
-    glVertexArrayVertexBuffer(GlobalRenderer.vertices.vao, 0, GlobalRenderer.vertices.vbo, 0, sizeof(Vertex));
+    glCreateBuffers(1, &GRenderer.vertices_vbo);
+    glNamedBufferData(GRenderer.vertices_vbo, sizeof(Vertex) * Initial_Vertices, NULL, GL_STATIC_DRAW);
+    glVertexArrayVertexBuffer(GRenderer.vertices_vao, 0, GRenderer.vertices_vbo, 0, sizeof(Vertex));
   }
   
-  glCreateBuffers(1, &GlobalRenderer.triangles.ebo);
-  glNamedBufferData(GlobalRenderer.triangles.ebo, sizeof(u32) * Initial_Indices, NULL, GL_STATIC_DRAW);
+  glCreateBuffers(1, &GRenderer.triangles_ebo);
+  glNamedBufferData(GRenderer.triangles_ebo, sizeof(u32) * Initial_Indices, NULL, GL_STATIC_DRAW);
   
-  glCreateBuffers(1, &GlobalRenderer.lines.ebo);
-  glNamedBufferData(GlobalRenderer.lines.ebo, sizeof(u32) * Initial_Indices, NULL, GL_STATIC_DRAW);
+  glCreateBuffers(1, &GRenderer.lines_ebo);
+  glNamedBufferData(GRenderer.lines_ebo, sizeof(u32) * Initial_Indices, NULL, GL_STATIC_DRAW);
   
   // MSAA
   {
-    glGenFramebuffers(1, &GlobalRenderer.msaa_fbo);
-    glGenTextures(1, &GlobalRenderer.msaa_texture_color_buffer_multisampled);
-    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, GlobalRenderer.msaa_texture_color_buffer_multisampled);
+    glGenFramebuffers(1, &GRenderer.msaa_fbo);
+    glGenTextures(1, &GRenderer.msaa_texture_color_buffer_multisampled);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, GRenderer.msaa_texture_color_buffer_multisampled);
     glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, MSAA_SAMPLES, GL_RGB, window_width, window_height, GL_TRUE);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
     
-    glGenRenderbuffers(1, &GlobalRenderer.msaa_rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, GlobalRenderer.msaa_rbo);
+    glGenRenderbuffers(1, &GRenderer.msaa_rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, GRenderer.msaa_rbo);
     glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAA_SAMPLES, GL_DEPTH24_STENCIL8, window_width, window_height);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GlobalRenderer.msaa_fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, GlobalRenderer.msaa_texture_color_buffer_multisampled, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, GlobalRenderer.msaa_rbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GRenderer.msaa_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, GRenderer.msaa_texture_color_buffer_multisampled, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, GRenderer.msaa_rbo);
     
     u32 msaa_fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (msaa_fbo_status != GL_FRAMEBUFFER_COMPLETE) {
@@ -129,16 +133,16 @@ renderer_init(s32 window_width, s32 window_height) {
   
   // Post processing and screen texture
   {
-    glGenFramebuffers(1, &GlobalRenderer.post_processing_fbo);
-    glGenTextures(1, &GlobalRenderer.screen_texture);
-    glBindTexture(GL_TEXTURE_2D, GlobalRenderer.screen_texture);
+    glGenFramebuffers(1, &GRenderer.post_processing_fbo);
+    glGenTextures(1, &GRenderer.screen_texture);
+    glBindTexture(GL_TEXTURE_2D, GRenderer.screen_texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width, window_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
     // attach to intermidiate_fbo
-    glBindFramebuffer(GL_FRAMEBUFFER, GlobalRenderer.post_processing_fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, GlobalRenderer.screen_texture, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, GRenderer.post_processing_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, GRenderer.screen_texture, 0);
     
     u32 postprocessing_fbo = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (postprocessing_fbo != GL_FRAMEBUFFER_COMPLETE) {
@@ -184,17 +188,17 @@ renderer_init(s32 window_width, s32 window_height) {
     }
   }
   
-  GlobalRenderer.screen_shader = glCreateProgram();
+  GRenderer.screen_shader = glCreateProgram();
   {
-    glAttachShader(GlobalRenderer.screen_shader, screen_vertex_shader);
-    glAttachShader(GlobalRenderer.screen_shader, screen_fragment_shader);
-    glLinkProgram(GlobalRenderer.screen_shader);
+    glAttachShader(GRenderer.screen_shader, screen_vertex_shader);
+    glAttachShader(GRenderer.screen_shader, screen_fragment_shader);
+    glLinkProgram(GRenderer.screen_shader);
     {
       s32 success;
-      glGetProgramiv(GlobalRenderer.screen_shader, GL_LINK_STATUS, &success);
+      glGetProgramiv(GRenderer.screen_shader, GL_LINK_STATUS, &success);
       if(!success) {
         char infoLog[1024];
-        glGetProgramInfoLog(GlobalRenderer.screen_shader, 1024, NULL, infoLog);
+        glGetProgramInfoLog(GRenderer.screen_shader, 1024, NULL, infoLog);
         printf("Error %d linking shader program. Log: %s", success, infoLog);
         Assert(0);
       }
@@ -204,71 +208,77 @@ renderer_init(s32 window_width, s32 window_height) {
   f32 screen_vertices[] = {
     -1.0f,  1.0f,
     -1.0f, -1.0f,
-    1.0f, -1.0f,
+     1.0f, -1.0f,
     -1.0f,  1.0f,
-    1.0f, -1.0f,
-    1.0f,  1.0f
+     1.0f, -1.0f,
+     1.0f,  1.0f
   };
   
-  glCreateVertexArrays(1, &GlobalRenderer.screen_vao);
+  glCreateVertexArrays(1, &GRenderer.screen_vao);
   
-  glEnableVertexArrayAttrib (GlobalRenderer.screen_vao, 0);
-  glVertexArrayAttribFormat (GlobalRenderer.screen_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribBinding(GlobalRenderer.screen_vao, 0, 0);
+  glEnableVertexArrayAttrib (GRenderer.screen_vao, 0);
+  glVertexArrayAttribFormat (GRenderer.screen_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+  glVertexArrayAttribBinding(GRenderer.screen_vao, 0, 0);
   
-  glCreateBuffers(1, &GlobalRenderer.screen_vbo);
-  glNamedBufferData(GlobalRenderer.screen_vbo, sizeof(screen_vertices), &screen_vertices, GL_STATIC_DRAW);
-  glVertexArrayVertexBuffer(GlobalRenderer.screen_vao, 0, GlobalRenderer.screen_vbo, 0, 2*sizeof(f32));
+  glCreateBuffers(1, &GRenderer.screen_vbo);
+  glNamedBufferData(GRenderer.screen_vbo, sizeof(screen_vertices), &screen_vertices, GL_STATIC_DRAW);
+  glVertexArrayVertexBuffer(GRenderer.screen_vao, 0, GRenderer.screen_vbo, 0, 2*sizeof(f32));
   
-  glUseProgram(GlobalRenderer.main_shader);
+  glUseProgram(GRenderer.main_shader);
   u32 texture_ids[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-  renderer_set_array_s32(GlobalRenderer.main_shader, "u_texture", 8, texture_ids);
+  renderer_set_array_s32(GRenderer.main_shader, "u_texture", 8, texture_ids);
   glUseProgram(0);
   
-  GlobalRenderer.textures.count = 0;
+  GRenderer.textures_count = 0;
+
+  glCullFace(GL_FRONT);
+  glFrontFace(GL_CCW);
   
   scratch_end(&scratch);
 }
 
 internal void
 renderer_draw(Mat4f32 view, Mat4f32 projection, s32 window_width, s32 window_height) {
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GlobalRenderer.msaa_fbo);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GRenderer.msaa_fbo);
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
   
-  glUseProgram(GlobalRenderer.main_shader);
-  renderer_set_uniform_mat4fv(GlobalRenderer.main_shader, "u_model",      mat4f32(1.0f));
-  renderer_set_uniform_mat4fv(GlobalRenderer.main_shader, "u_view",       view);
-  renderer_set_uniform_mat4fv(GlobalRenderer.main_shader, "u_projection", projection);
+  glUseProgram(GRenderer.main_shader);
+  renderer_set_uniform_mat4fv(GRenderer.main_shader, "u_model",      mat4f32(1.0f));
+  renderer_set_uniform_mat4fv(GRenderer.main_shader, "u_view",       view);
+  renderer_set_uniform_mat4fv(GRenderer.main_shader, "u_projection", projection);
   
-  for (u32 i = 0; i < GlobalRenderer.textures.count; i += 1) {
+  for (u32 i = 0; i < GRenderer.textures_count; i += 1) {
     glActiveTexture(GL_TEXTURE0 + i);
-    glBindTexture(GL_TEXTURE_2D, GlobalRenderer.textures.data[i]);
+    glBindTexture(GL_TEXTURE_2D, GRenderer.textures_data[i]);
   }
   
   // Draw to msaa_fbo
   {
+    glBindVertexArray(GRenderer.vertices_vao);
+    glEnable(GL_CULL_FACE);
+
     // TODO(fz): We don't need to do NamedBufferSubData all the time, since we don't clear the buffers every frame.
-    
+
     // Triangles
-    // glBindVertexArray(GlobalRenderer.vertex_vao);
-    // glNamedBufferSubData(GlobalRenderer.vertex_vbo, 0, GlobalRenderer.vertex_count * sizeof(Vertex), GlobalRenderer.vertex_data);
-    // glNamedBufferSubData(GlobalRenderer.vertex_ebo, 0, GlobalRenderer.triangles_indices_count * sizeof(u32), GlobalRenderer.triangles_indices_data);
-    // glDrawElements(GL_TRIANGLES, GlobalRenderer.triangles_indices_count, GL_UNSIGNED_INT, NULL);
-    
+    glVertexArrayElementBuffer(GRenderer.vertices_vao, GRenderer.triangles_ebo);
+    glNamedBufferSubData(GRenderer.vertices_vbo, 0, GRenderer.vertices_count * sizeof(Vertex), GRenderer.vertices_data);
+    glNamedBufferSubData(GRenderer.triangles_ebo, 0, GRenderer.triangles_indices_count * sizeof(u32), GRenderer.triangles_indices_data);
+    glDrawElements(GL_TRIANGLES, GRenderer.triangles_indices_count, GL_UNSIGNED_INT, NULL);
+
     // Lines
-    glBindVertexArray(GlobalRenderer.vertices.vao);
-    glVertexArrayElementBuffer(GlobalRenderer.vertices.vao, GlobalRenderer.lines.ebo);
-    glNamedBufferSubData(GlobalRenderer.vertices.vbo, 0, GlobalRenderer.vertices.count * sizeof(Vertex), GlobalRenderer.vertices.data);
-    glNamedBufferSubData(GlobalRenderer.lines.ebo, 0, GlobalRenderer.lines.indices_count * sizeof(u32), GlobalRenderer.lines.indices_data);
-    glDrawElements(GL_LINES, GlobalRenderer.lines.indices_count, GL_UNSIGNED_INT, NULL);
-    
+    glVertexArrayElementBuffer(GRenderer.vertices_vao, GRenderer.lines_ebo);
+    glNamedBufferSubData(GRenderer.vertices_vbo, 0, GRenderer.vertices_count * sizeof(Vertex), GRenderer.vertices_data);
+    glNamedBufferSubData(GRenderer.lines_ebo, 0, GRenderer.lines_indices_count * sizeof(u32), GRenderer.lines_indices_data);
+    glDrawElements(GL_LINES, GRenderer.lines_indices_count, GL_UNSIGNED_INT, NULL);
+
+    glDisable(GL_CULL_FACE);
     glBindVertexArray(0);
   }
   
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, GlobalRenderer.msaa_fbo);
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GlobalRenderer.post_processing_fbo);	
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, GRenderer.msaa_fbo);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GRenderer.post_processing_fbo);	
   glBlitFramebuffer(0, 0, window_width, window_height, 0, 0, window_width, window_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
   
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -278,13 +288,13 @@ renderer_draw(Mat4f32 view, Mat4f32 projection, s32 window_width, s32 window_hei
   glClear(GL_COLOR_BUFFER_BIT);
   glDisable(GL_DEPTH_TEST);
   
-  glUseProgram(GlobalRenderer.screen_shader);
-  glBindVertexArray(GlobalRenderer.screen_vao);
+  glUseProgram(GRenderer.screen_shader);
+  glBindVertexArray(GRenderer.screen_vao);
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, GlobalRenderer.screen_texture);
+  glBindTexture(GL_TEXTURE_2D, GRenderer.screen_texture);
   
-  renderer_set_uniform_s32(GlobalRenderer.screen_shader, "u_window_width", window_width);
-  renderer_set_uniform_s32(GlobalRenderer.screen_shader, "u_window_height", window_height);
+  renderer_set_uniform_s32(GRenderer.screen_shader, "u_window_width", window_width);
+  renderer_set_uniform_s32(GRenderer.screen_shader, "u_window_height", window_height);
   glDrawArrays(GL_TRIANGLES, 0, 6);
   
   glUseProgram(0);
@@ -295,26 +305,26 @@ renderer_draw(Mat4f32 view, Mat4f32 projection, s32 window_width, s32 window_hei
 internal void
 renderer_on_resize(s32 window_width, s32 window_height) {
   // Delete and recreate MSAA framebuffer
-  glBindFramebuffer(GL_FRAMEBUFFER, GlobalRenderer.msaa_fbo);
-  glDeleteTextures(1, &GlobalRenderer.msaa_texture_color_buffer_multisampled);
-  glDeleteRenderbuffers(1, &GlobalRenderer.msaa_rbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, GRenderer.msaa_fbo);
+  glDeleteTextures(1, &GRenderer.msaa_texture_color_buffer_multisampled);
+  glDeleteRenderbuffers(1, &GRenderer.msaa_rbo);
   
   // Regen MSAA buffer
-  glGenFramebuffers(1, &GlobalRenderer.msaa_fbo);
+  glGenFramebuffers(1, &GRenderer.msaa_fbo);
   
-  glGenTextures(1, &GlobalRenderer.msaa_texture_color_buffer_multisampled);
-  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, GlobalRenderer.msaa_texture_color_buffer_multisampled);
+  glGenTextures(1, &GRenderer.msaa_texture_color_buffer_multisampled);
+  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, GRenderer.msaa_texture_color_buffer_multisampled);
   glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, MSAA_SAMPLES, GL_RGB, window_width, window_height, GL_TRUE);
   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
   
-  glGenRenderbuffers(1, &GlobalRenderer.msaa_rbo);
-  glBindRenderbuffer(GL_RENDERBUFFER, GlobalRenderer.msaa_rbo);
+  glGenRenderbuffers(1, &GRenderer.msaa_rbo);
+  glBindRenderbuffer(GL_RENDERBUFFER, GRenderer.msaa_rbo);
   glRenderbufferStorageMultisample(GL_RENDERBUFFER, MSAA_SAMPLES, GL_DEPTH24_STENCIL8, window_width, window_height);
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
   
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GlobalRenderer.msaa_fbo);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, GlobalRenderer.msaa_texture_color_buffer_multisampled, 0);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, GlobalRenderer.msaa_rbo);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GRenderer.msaa_fbo);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, GRenderer.msaa_texture_color_buffer_multisampled, 0);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, GRenderer.msaa_rbo);
   
   u32 msaa_fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
   if (msaa_fbo_status != GL_FRAMEBUFFER_COMPLETE) {
@@ -323,19 +333,19 @@ renderer_on_resize(s32 window_width, s32 window_height) {
   }
   
   // --- Intermidiate fbo for post processing
-  glGenFramebuffers(1, &GlobalRenderer.post_processing_fbo);
-  glDeleteTextures(1, &GlobalRenderer.screen_texture);
+  glGenFramebuffers(1, &GRenderer.post_processing_fbo);
+  glDeleteTextures(1, &GRenderer.screen_texture);
   
   // create color attachment texture
-  glGenTextures(1, &GlobalRenderer.screen_texture);
-  glBindTexture(GL_TEXTURE_2D, GlobalRenderer.screen_texture);
+  glGenTextures(1, &GRenderer.screen_texture);
+  glBindTexture(GL_TEXTURE_2D, GRenderer.screen_texture);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width, window_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   
   // attach to intermidiate_fbo
-  glBindFramebuffer(GL_FRAMEBUFFER, GlobalRenderer.post_processing_fbo);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, GlobalRenderer.screen_texture, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, GRenderer.post_processing_fbo);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, GRenderer.screen_texture, 0);
   
   u32 postprocessing_fbo = glCheckFramebufferStatus(GL_FRAMEBUFFER);
   if (postprocessing_fbo != GL_FRAMEBUFFER_COMPLETE) {
@@ -367,38 +377,95 @@ renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a) {
   
   glBindTexture(GL_TEXTURE_2D, 0);
   
-  u32 texture_index = GlobalRenderer.textures.count;
-  GlobalRenderer.textures.data[texture_index] = texture_id;
-  GlobalRenderer.textures.count += 1;
+  u32 texture_index = GRenderer.textures_count;
+  GRenderer.textures_data[texture_index] = texture_id;
+  GRenderer.textures_count += 1;
   
   return (f32)texture_index;
 }
 
 internal void
 renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture) {
+  if (GRenderer.lines_indices_count + 3 > GRenderer.lines_indices_capacity) {
+    printf("Too many lines indices");
+    Assert(0);
+  }
+  if (GRenderer.vertices_count + 3 > GRenderer.vertices_capacity) {
+    printf("Too many vertices");
+    Assert(0);
+  }
+
+  Vertex a = vertex(a_position, vec4f32(1.0f, 1.0f, 1.0f, 1.0f), vec2f32(0.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
+  Vertex b = vertex(b_position, vec4f32(1.0f, 1.0f, 1.0f, 1.0f), vec2f32(0.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
   
-  Vertex a = vertex(a_position, vec4f32(1.0f, 1.0f, 1.0f, 1.0f), vec2f32(0.0f, 0.0f), texture);
-  Vertex b = vertex(b_position, vec4f32(1.0f, 1.0f, 1.0f, 1.0f), vec2f32(0.0f, 0.0f), texture);
+  GRenderer.vertices_data[GRenderer.vertices_count] = a;
+  GRenderer.lines_indices_data[GRenderer.lines_indices_count] = GRenderer.vertices_count;
+  GRenderer.vertices_count += 1;
+  GRenderer.lines_indices_count += 1;
   
-  GlobalRenderer.vertices.data[GlobalRenderer.vertices.count] = a;
-  GlobalRenderer.lines.indices_data[GlobalRenderer.lines.indices_count] = GlobalRenderer.vertices.count;
-  GlobalRenderer.vertices.count += 1;
-  GlobalRenderer.lines.indices_count += 1;
-  
-  GlobalRenderer.vertices.data[GlobalRenderer.vertices.count] = b;
-  GlobalRenderer.lines.indices_data[GlobalRenderer.lines.indices_count] = GlobalRenderer.vertices.count;
-  GlobalRenderer.vertices.count += 1;
-  GlobalRenderer.lines.indices_count += 1;
+  GRenderer.vertices_data[GRenderer.vertices_count] = b;
+  GRenderer.lines_indices_data[GRenderer.lines_indices_count] = GRenderer.vertices_count;
+  GRenderer.vertices_count += 1;
+  GRenderer.lines_indices_count += 1;
 }
 
 internal void
-renderer_push_triangle(Vertex a, Vertex b, Vertex c, u32 texture) {
-}
+renderer_push_triangle(Vertex a, Vertex b, Vertex c) {
+  if (GRenderer.triangles_indices_count + 3 > GRenderer.triangles_indices_capacity) {
+    printf("Too many triangles indices");
+    Assert(0);
+  }
+  if (GRenderer.vertices_count + 3 > GRenderer.vertices_capacity) {
+    printf("Too many vertices");
+    Assert(0);
+  }
 
-internal u32
-renderer_push_vertex(Vertex v) {
-  
-  return 0;
+  // TODO(fz): Should try making this a hashtable lookup
+
+  b32 a_exists = false;
+  b32 b_exists = false;
+  b32 c_exists = false;
+  for (u32 i = 0; i < GRenderer.vertices_count; i += 1) {
+    Vertex it = GRenderer.vertices_data[i];
+
+    if (!a_exists && MemoryMatch(&it, &a, sizeof(Vertex))) {
+      GRenderer.triangles_indices_data[GRenderer.triangles_indices_count] = i;
+      GRenderer.triangles_indices_count += 1;
+      a_exists = true;
+    }
+    if (!b_exists && MemoryMatch(&it, &b, sizeof(Vertex))) {
+      GRenderer.triangles_indices_data[GRenderer.triangles_indices_count] = i;
+      GRenderer.triangles_indices_count += 1;
+      b_exists = true;
+    }
+    if (!c_exists && MemoryMatch(&it, &c, sizeof(Vertex))) {
+      GRenderer.triangles_indices_data[GRenderer.triangles_indices_count] = i;
+      GRenderer.triangles_indices_count += 1;
+      c_exists = true;
+    }
+    if (a_exists && b_exists && c_exists) {
+      break;
+    }
+  }
+
+  if (!a_exists) {
+    GRenderer.vertices_data[GRenderer.vertices_count] = a;
+    GRenderer.triangles_indices_data[GRenderer.triangles_indices_count] = GRenderer.vertices_count;
+    GRenderer.vertices_count          += 1;
+    GRenderer.triangles_indices_count += 1;
+  }
+  if (!b_exists) {
+    GRenderer.vertices_data[GRenderer.vertices_count] = b;
+    GRenderer.triangles_indices_data[GRenderer.triangles_indices_count] = GRenderer.vertices_count;
+    GRenderer.vertices_count          += 1;
+    GRenderer.triangles_indices_count += 1;
+  }
+  if (!c_exists) {
+    GRenderer.vertices_data[GRenderer.vertices_count] = c;
+    GRenderer.triangles_indices_data[GRenderer.triangles_indices_count] = GRenderer.vertices_count;
+    GRenderer.vertices_count          += 1;
+    GRenderer.triangles_indices_count += 1;
+  }
 }
 
 internal void
@@ -408,13 +475,13 @@ renderer_push_quad(Vec3f32 bot_left_point, Vec4f32 color, f32 width, f32 height,
   Vec3f32 c = vec3f32(a.x+width, a.y+height, a.z);
   Vec3f32 d = vec3f32(a.x,       a.y+height, a.z);
   
-  Vertex va = vertex(a, color, vec2f32(0.0f, 0.0f), texture);
-  Vertex vb = vertex(b, color, vec2f32(1.0f, 0.0f), texture);
-  Vertex vc = vertex(c, color, vec2f32(1.0f, 1.0f), texture);
-  Vertex vd = vertex(d, color, vec2f32(0.0f, 1.0f), texture);
+  Vertex va = vertex(a, color, vec2f32(0.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
+  Vertex vb = vertex(b, color, vec2f32(1.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
+  Vertex vc = vertex(c, color, vec2f32(1.0f, 1.0f), vec3f32(0.0, 0.0, 0.0), texture);
+  Vertex vd = vertex(d, color, vec2f32(0.0f, 1.0f), vec3f32(0.0, 0.0, 0.0), texture);
   
-  renderer_push_triangle(va, vb, vc, texture);
-  renderer_push_triangle(va, vc, vd, texture);
+  renderer_push_triangle(va, vb, vc);
+  renderer_push_triangle(va, vc, vd);
 }
 
 internal void

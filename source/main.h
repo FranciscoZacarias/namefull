@@ -58,7 +58,7 @@ typedef struct Program {
   b32 is_running;
 } Program;
 
-Program GlobalProgram;
+Program GProgram;
 
 internal void program_init();
 internal void program_tick();

@@ -4,6 +4,7 @@ layout (location = 0) out vec4 pixel_color;
 
 in vec4 vertex_color;
 in vec2 vertex_uv;
+in vec3 vertex_normal;
 flat in float vertex_texture;
 
 uniform sampler2D u_texture[8];
