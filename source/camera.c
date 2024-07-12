@@ -2,13 +2,13 @@ internal Camera camera_init() {
   AssertNoReentry();
   
 	Camera camera;
-	camera.position = vec3f32(-9.21f, 5.45f, 14.81f);
-	camera.front = vec3f32(0.56f, -0.31f, -0.77f);
-	camera.up = vec3f32(0.18f, 0.95f, -0.25f);
-	camera.right = vec3f32(0.81f, -0.00f, 0.58f);
-	camera.pitch = -18.10f;
-	camera.yaw = -54.20f;
-  camera.mode = CameraMode_Select;
+	camera.position = vec3f32(0.0f, 0.0f, 3.0f);
+	camera.front    = vec3f32(0.0f, 0.0f, 0.0f);
+	camera.up       = vec3f32(0.0f, 0.0f, 0.0f);
+	camera.right    = vec3f32(0.0f, 0.0f, 0.0f);
+	camera.pitch    = -0.0f;
+	camera.yaw      = -90.0f;
+  camera.mode     = CameraMode_Select;
   
   _camera_update(&camera);
   return camera;
