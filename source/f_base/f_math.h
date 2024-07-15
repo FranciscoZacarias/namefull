@@ -6,7 +6,7 @@
 #define Degrees(r) (r * (180 / PI))
 #define Radians(d) (d * (PI / 180))
 
-typedef struct Vec2f32 {
+typedef struct Vector2 {
 	union {
 		f32 data[2];
 		struct {
@@ -14,9 +14,9 @@ typedef struct Vec2f32 {
 			f32 y;
 		};
 	};
-} Vec2f32;
+} Vector2;
 
-typedef struct Vec3f32 {
+typedef struct Vector3 {
   union {
     f32 data[3];
     struct {
@@ -25,9 +25,9 @@ typedef struct Vec3f32 {
       f32 z;
     };
   };
-} Vec3f32;
+} Vector3;
 
-typedef struct Vec4f32 {
+typedef struct Vector4 {
   union {
     f32 data[4];
     struct {
@@ -37,9 +37,9 @@ typedef struct Vec4f32 {
       f32 w;
     };
   };
-} Vec4f32;
+} Vector4;
 
-typedef struct Mat4f32 {
+typedef struct Matrix4 {
   union {
     f32 data[4][4];
     struct {
@@ -49,109 +49,131 @@ typedef struct Mat4f32 {
       m3, m7, m11, m15;
     };
   };
-} Mat4f32;
+} Matrix4;
+#define matrix4_identity() matrix4(1.0f)
 
-//~ Quad
-typedef struct Quad {
-  Vec3f32 p0;
-  Vec3f32 p1;
-  Vec3f32 p2;
-  Vec3f32 p3;
-} Quad;
+typedef struct Quaternion {
+  union {
+    f32 data[4];
+    struct {
+      f32 x;
+      f32 y;
+      f32 z;
+      f32 w;
+    };
+  };
+} Quaternion;
+#define quaternion(x,y,z,w) (Quaternion){x,y,z,w}
+#define quaternion_identity() quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 
-internal Quad transform_quad(Quad q, Mat4f32 m);
-internal Quad scale_quad(Quad q, f32 scale);
-internal Vec3f32 quad_get_center(Quad q);
+typedef struct Transform {
+  Vector3 translation;
+  Quaternion rotation;
+  Vector3 scale;
+} Transform;
+#define transform(t,r,s) (Transform){t,r,s}
 
-// NOTE(fz): This defines a 2D Quad where (x,y) are the bottom left point of the quad!
-typedef struct Quad2D {
-  f32 x;
-  f32 y;
-  f32 width;
-  f32 height;
-} Quad2D;
+typedef struct Rayf32 {
+  Vector3 point;
+  Vector3 direction;
+} Rayf32;
+#define rayf32(point, direction) (Rayf32){point,direction}
 
-b32 quad2d_contains_point(Quad2D a, Vec2f32 p);
-b32 quad2d_overlaps(Quad2D a, Quad2D b);
-b32 quad2d_fully_contained_by_qad2d(Quad2D a, Quad2D b);
-Quad2D quad2d_get_overlap(Quad2D a, Quad2D b);
-Quad2D quad2d_uv_cull(Quad2D quad, Quad2D uv, Quad2D cull_quad);
+internal b32 f32_equals(f32 a, f32 b);
 
-typedef struct Linef32 {
-  Vec3f32 point;
-  Vec3f32 direction;
-} Linef32;
+internal Vector2 vector2(f32 x, f32 y);
+internal f32 vector2_distance(Vector2 a, Vector2 b);
+internal f32 vector2_distance_signed(Vector2 a, Vector2 b, Vector2 reference);
 
-internal Linef32 linef32(Vec3f32 point, Vec3f32 direction);
+internal Vector3 vector3(f32 x, f32 y, f32 z);
+internal Vector3 vector3_from_vector4(Vector4 v); /* Discards the w value */
+internal void print_vector3(Vector3 v, const char* label);
 
-internal Vec2f32 vec2f32(f32 x, f32 y);
-internal f32 distance_vec2f32(Vec2f32 a, Vec2f32 b);
-internal f32 signed_distance_vec2f32(Vec2f32 a, Vec2f32 b, Vec2f32 reference);
+internal Vector3 vector3_add(Vector3 a, Vector3 b);
+internal Vector3 sub(Vector3 a, Vector3 b);
+internal Vector3 vector3_mul(Vector3 a, Vector3 b);
+internal Vector3 vector3_div(Vector3 a, Vector3 b);
+internal Vector3 mul_vector3_matrix4(Vector3 v, Matrix4 m);
 
-internal Vec3f32 vec3f32(f32 x, f32 y, f32 z);
-internal Vec3f32 vec3f32_from_vec4f32(Vec4f32 v); /* Discards the w value */
-internal void print_vec3f32(Vec3f32 v, const char* label);
+internal Vector3 vector3_cross(Vector3 a, Vector3 b);
+internal Vector3 vector3_scale(Vector3 v, f32 scalar);
+internal Vector3 vector3_scale_xyz(Vector3 v, f32 scale_x, f32 scale_y, f32 scale_z);
+internal Vector3 vector3_normalize(Vector3 v);
+internal Vector3 vector3_rotate_by_axis(Vector3 v, Vector3 axis, f32 angle);
+internal Vector3 vector3_lerp(Vector3 a, Vector3 b, f32 t);
+internal Vector3 vector3_unproject(Vector3 source, Matrix4 projection, Matrix4 view);
+internal Vector3 mul_vector3_matrix4(Vector3 v, Matrix4 m);
 
-internal Vec3f32 add_vec3f32(Vec3f32 a, Vec3f32 b);
-internal Vec3f32 sub_vec3f32(Vec3f32 a, Vec3f32 b);
-internal Vec3f32 mul_vec3f32(Vec3f32 a, Vec3f32 b);
-internal Vec3f32 mul_vec3f32_mat4f32(Vec3f32 v, Mat4f32 m);
-internal Vec3f32 div_vec3f32(Vec3f32 a, Vec3f32 b);
+internal f32 vector3_dot(Vector3 a, Vector3 b);
+internal f32 vector3_length(Vector3 v);
+internal f32 vector3_distance(Vector3 a, Vector3 b);
+internal f32 vector3_angle(Vector3 a, Vector3 b);
 
-internal Vec3f32 cross_vec3f32(Vec3f32 a, Vec3f32 b);
-internal Vec3f32 scale_vec3f32(Vec3f32 v, f32 scalar);
-internal Vec3f32 scale_vec3f32_xyz(Vec3f32 v, f32 scale_x, f32 scale_y, f32 scale_z);
-internal Vec3f32 normalize_vec3f32(Vec3f32 v);
-internal Vec3f32 transform_vec3f32_mat4f32(Vec3f32 v, Mat4f32 m);
-internal Vec3f32 rotate_by_axis_vec3f32(Vec3f32 v, Vec3f32 axis, f32 angle);
-internal Vec3f32 lerp_vec3f32(Vec3f32 a, Vec3f32 b, f32 t);
-internal Vec3f32 unproject_vec3f32(Vec3f32 source, Mat4f32 projection, Mat4f32 view);
+internal Vector4 vector4 (f32 x, f32 y, f32 z, f32 w);
+internal Vector4 vector4_from_vector3(Vector3 v);
 
-internal f32 dot_vec3f32(Vec3f32 a, Vec3f32 b);
-internal f32 length_vec3f32(Vec3f32 v);
-internal f32 distance_vec3f32(Vec3f32 a, Vec3f32 b);
-internal f32 angle_vec3f32(Vec3f32 a, Vec3f32 b);
+internal Vector4 vector4_add(Vector4 a, Vector4 b);
+internal Vector4 vector4_sub(Vector4 a, Vector4 b);
+internal Vector4 vector4_mul(Vector4 a, Vector4 b);
+internal Vector4 vector4_div(Vector4 a, Vector4 b);
+internal Vector4 mul_vector4_matrix4(Vector4 v, Matrix4 m);
 
-internal Vec4f32 vec4f32 (f32 x, f32 y, f32 z, f32 w);
-internal Vec4f32 vec4f32_from_vec3f32(Vec3f32 v);
+internal Vector4 vector4_scale(Vector4 v, f32 scalar);
+internal Vector4 vector4_normalize(Vector4 v);
+internal Vector4 vector4_lerp(Vector4 a, Vector4 b, f32 t);
 
-internal Vec4f32 add_vec4f32(Vec4f32 a, Vec4f32 b);
-internal Vec4f32 sub_vec4f32(Vec4f32 a, Vec4f32 b);
-internal Vec4f32 mul_vec4f32(Vec4f32 a, Vec4f32 b);
-internal Vec4f32 div_vec4f32(Vec4f32 a, Vec4f32 b);
-internal Vec4f32 mul_vec4f32_mat4f32(Vec4f32 v, Mat4f32 m);
+internal f32 vector4_dot(Vector4 a, Vector4 b);
+internal f32 vector4_length(Vector4 v);
+internal f32 vector4_distance(Vector4 a, Vector4 b);
 
-internal Vec4f32 scale_vec4f32(Vec4f32 v, f32 scalar);
-internal Vec4f32 normalize_vec4f32(Vec4f32 v);
-internal Vec4f32 lerp_vec4f32(Vec4f32 a, Vec4f32 b, f32 t);
+internal Matrix4 matrix4(f32 diag);
+internal Matrix4 matrix4_add(Matrix4 left, Matrix4 right);
+internal Matrix4 matrix4_sub(Matrix4 left, Matrix4 right); /* Apply the left matrix to the right matrix*/
+internal Matrix4 matrix4_mul(Matrix4 left, Matrix4 right); 
 
-internal f32 dot_vec4f32(Vec4f32 a, Vec4f32 b);
-internal f32 len_vec4f32(Vec4f32 v);
-internal f32 distance_vec4f32(Vec4f32 a, Vec4f32 b);
+internal Matrix4 matrix4_translate(f32 x, f32 y, f32 z);
+internal Matrix4 matrix4_rotate_axis(Vector3 axis, f32 radians);
+internal Matrix4 matrix4_rotate_x(f32 radians);
+internal Matrix4 matrix4_rotate_y(f32 radians);
+internal Matrix4 matrix4_rotate_z(f32 radians);
+internal Matrix4 matrix4_rotate_xyz(Vector3 radians);
+internal Matrix4 matrix4_rotate_zyx(Vector3 radians);
 
-internal Mat4f32 mat4f32(f32 diag);
-internal Mat4f32 add_mat4f32(Mat4f32 left, Mat4f32 right);
-internal Mat4f32 sub_mat4f32(Mat4f32 left, Mat4f32 right); /* Apply the left matrix to the right matrix*/
-internal Mat4f32 mul_mat4f32(Mat4f32 left, Mat4f32 right); 
+internal Matrix4 matrix4_transpose(Matrix4 m);
+internal Matrix4 matrix4_scale(f32 x, f32 y, f32 z);
+internal Matrix4 matrix4_frustum(f64 left, f64 right, f64 bottom, f64 top, f64 near_plane, f64 far_plane);
+internal Matrix4 matrix4_perspective(f64 fovy, f64 window_width, f64 window_height, f64 near_plane, f64 far_plane);
+internal Matrix4 matrix4_ortographic(f64 left, f64 right, f64 bottom, f64 top, f64 near_plane, f64 far_plane);
+internal Matrix4 matrix4_look_at(Vector3 eye, Vector3 target, Vector3 up);
+internal Matrix4 matrix_from_quaternion(Quaternion q);
+internal Transform transform_from_matrix4(Matrix4 mat);
 
-internal Mat4f32 translate_mat4f32(f32 x, f32 y, f32 z);
-internal Mat4f32 rotate_axis_mat4f32(Vec3f32 axis, f32 radians);
-internal Mat4f32 rotate_x_mat4f32(f32 radians);
-internal Mat4f32 rotate_y_mat4f32(f32 radians);
-internal Mat4f32 rotate_z_mat4f32(f32 radians);
-internal Mat4f32 rotate_xyz_mat4f32(Vec3f32 radians);
-internal Mat4f32 rotate_zyx_mat4f32(Vec3f32 radians);
-
-internal Mat4f32 transpose_mat4f32(Mat4f32 m);
-internal Mat4f32 scale_mat4f32(f32 x, f32 y, f32 z);
-internal Mat4f32 frustum_mat4f32(f64 left, f64 right, f64 bottom, f64 top, f64 near_plane, f64 far_plane);
-internal Mat4f32 perspective_mat4f32(f64 fovy, f64 window_width, f64 window_height, f64 near_plane, f64 far_plane);
-internal Mat4f32 ortographic_mat4f32(f64 left, f64 right, f64 bottom, f64 top, f64 near_plane, f64 far_plane);
-internal Mat4f32 look_at_mat4f32(Vec3f32 eye, Vec3f32 target, Vec3f32 up);
+internal Quaternion quaternion_add(Quaternion q1, Quaternion q2);
+internal Quaternion quaternion_add_value(Quaternion q, f32 value);
+internal Quaternion quaternion_subtract(Quaternion q1, Quaternion q2);
+internal Quaternion quaternion_subtract_value(Quaternion q, f32 value);
+internal f32        quaternion_length(Quaternion q);
+internal Quaternion quaternion_normalize(Quaternion q);
+internal Quaternion quaternion_invert(Quaternion q);
+internal Quaternion quaternion_multiply(Quaternion q1, Quaternion q2);
+internal Quaternion quaternion_scale(Quaternion q, f32 scalar);
+internal Quaternion quaternion_divide(Quaternion q1, Quaternion q2);
+internal Quaternion quaternion_lerp(Quaternion q1, Quaternion q2, f32 amount);
+internal Quaternion quaternion_nlerp(Quaternion q1, Quaternion q2, f32 amount);
+internal Quaternion quaternion_slerp(Quaternion q1, Quaternion q2, f32 amount);
+internal Quaternion quaternion_cubic_hermit_spline(Quaternion q1, Quaternion outTangent1, Quaternion q2, Quaternion inTangent2, f32 t);
+internal Quaternion quaternion_from_vector3_to_vector3(Vector3 from, Vector3 to);
+internal Quaternion quaternion_from_matrix(Matrix4 mat);
+internal Quaternion quaternion_from_axis_angle(Vector3 axis, f32 angle);
+internal void       axis_angle_from_quaternion(Quaternion q, Vector3 *axis, f32 *angle);
+internal Quaternion quaternion_from_euler(f32 pitch, f32 yaw, f32 roll);
+internal void       euler_from_quaternion(Quaternion q, f32* pitch, f32* yaw, f32* roll);
+internal Quaternion quaternion_mul_matric4(Quaternion q, Matrix4 mat);
+internal b32        quaternion_equals(Quaternion p, Quaternion q);
 
 internal f32 clampf32(f32 value, f32 min, f32 max);
 internal f32 lerpf32(f32 start, f32 end, f32 t);
-internal b32 is_vector_inside_rectangle(Vec3f32 p, Vec3f32 a, Vec3f32 b, Vec3f32 c);
-internal Vec3f32 intersect_line_with_plane(Linef32 line, Vec3f32 point1, Vec3f32 point2, Vec3f32 point3);
+internal b32 is_vector_inside_rectangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c);
+internal Vector3 intersect_ray_with_plane(Rayf32 line, Vector3 point1, Vector3 point2, Vector3 point3);
 
 #endif // F_MATH_H

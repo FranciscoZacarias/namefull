@@ -44,8 +44,8 @@ typedef struct Program {
   
   Camera camera;
   
-  Mat4f32 view;
-  Mat4f32 projection;
+  Matrix4 view;
+  Matrix4 projection;
   
   f64 current_time;
   f64 delta_time;
@@ -54,7 +54,7 @@ typedef struct Program {
   f32 near_plane;
   f32 far_plane;
   
-  Vec3f32 raycast;
+  Vector3 raycast;
   b32 is_running;
 } Program;
 

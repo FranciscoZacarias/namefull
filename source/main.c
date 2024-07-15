@@ -13,9 +13,9 @@ int main(int argc, char** argv) {
   f32 texture_blue  = renderer_load_color_texture(0.0, 0.0, 1.0, 1.0);
   f32 texture_yell  = renderer_load_color_texture(1.0, 1.0, 0.0, 1.0);
   
-  renderer_push_line(vec3f32(-8.0f,  0.0f,  0.0f), vec3f32(8.0f, 0.0f, 0.0f), texture_red);
-  renderer_push_line(vec3f32( 0.0f, -8.0f,  0.0f), vec3f32(0.0f, 8.0f, 0.0f), texture_green);
-  renderer_push_line(vec3f32( 0.0f,  0.0f, -8.0f), vec3f32(0.0f, 0.0f, 8.0f), texture_blue);
+  renderer_push_line(vector3(-8.0f,  0.0f,  0.0f), vector3(8.0f, 0.0f, 0.0f), texture_red);
+  renderer_push_line(vector3( 0.0f, -8.0f,  0.0f), vector3(0.0f, 8.0f, 0.0f), texture_green);
+  renderer_push_line(vector3( 0.0f,  0.0f, -8.0f), vector3(0.0f, 0.0f, 8.0f), texture_blue);
 
   while (GProgram.is_running) {
     program_tick();
@@ -33,8 +33,8 @@ program_tick() {
   input_update(); 
   glfwPollEvents();
   
-  GProgram.view = look_at_mat4f32(GProgram.camera.position, add_vec3f32(GProgram.camera.position, GProgram.camera.front), GProgram.camera.up);
-  GProgram.projection = perspective_mat4f32(Radians(45), GProgram.window_width, GProgram.window_height, GProgram.near_plane, GProgram.far_plane);
+  GProgram.view = matrix4_look_at(GProgram.camera.position, vector3_add(GProgram.camera.position, GProgram.camera.front), GProgram.camera.up);
+  GProgram.projection = matrix4_perspective(Radians(45), GProgram.window_width, GProgram.window_height, GProgram.near_plane, GProgram.far_plane);
   
   camera_update(&GProgram.camera, GProgram.delta_time);
   
@@ -46,10 +46,10 @@ program_tick() {
     f32 mouse_x_ndc = (2.0f * InputState.mouse_current.screen_space_x) / GProgram.window_width - 1.0f;
     f32 mouse_y_ndc = 1.0f - (2.0f * InputState.mouse_current.screen_space_y) / GProgram.window_height;
     
-    Vec3f32 unproject_mouse = unproject_vec3f32(vec3f32(mouse_x_ndc, mouse_y_ndc, 1.0f), GProgram.projection, GProgram.view);
-    GProgram.raycast = normalize_vec3f32(sub_vec3f32(vec3f32(unproject_mouse.x, unproject_mouse.y, unproject_mouse.z), vec3f32(GProgram.camera.position.x, GProgram.camera.position.y, GProgram.camera.position.z)));
+    Vector3 unproject_mouse = vector3_unproject(vector3(mouse_x_ndc, mouse_y_ndc, 1.0f), GProgram.projection, GProgram.view);
+    GProgram.raycast = vector3_normalize(sub(vector3(unproject_mouse.x, unproject_mouse.y, unproject_mouse.z), vector3(GProgram.camera.position.x, GProgram.camera.position.y, GProgram.camera.position.z)));
   } else {
-    GProgram.raycast = vec3f32(F32_MAX, F32_MAX, F32_MAX);
+    GProgram.raycast = vector3(F32_MAX, F32_MAX, F32_MAX);
   }
   
   if (glfwWindowShouldClose(GProgram.window) || input_is_key_pressed(KeyboardKey_ESCAPE)) {
@@ -65,8 +65,8 @@ program_init() {
   GProgram.window_width  = 1280;
   GProgram.window_height = 720;
   
-  GProgram.view       = mat4f32(1.0f);
-  GProgram.projection = mat4f32(1.0f);
+  GProgram.view       = matrix4(1.0f);
+  GProgram.projection = matrix4(1.0f);
   
   GProgram.current_time = 0.0f;
   GProgram.delta_time   = 0.0f;

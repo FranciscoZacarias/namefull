@@ -6,7 +6,7 @@
 #define CAMERA_YAW         -90.0f
 #define CAMERA_PITCH        0.0f
 #define CAMERA_SENSITIVITY  0.2f
-#define WORLD_UP            vec3f32(0.0f, 1.0f, 0.0f)
+#define WORLD_UP            vector3(0.0f, 1.0f, 0.0f)
 #define CAMERA_SPEED        8.0f
 
 typedef enum Camera_Mode {
@@ -26,10 +26,10 @@ typedef enum Camera_Movement {
 } Camera_Movement;
 
 typedef struct Camera {
-	Vec3f32 position;
-	Vec3f32 front;
-	Vec3f32 up;
-	Vec3f32 right;
+	Vector3 position;
+	Vector3 front;
+	Vector3 up;
+	Vector3 right;
 	f32 yaw;
 	f32 pitch;
   

@@ -3,6 +3,9 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#define TINYOBJ_LOADER_C_IMPLEMENTATION
+#include "external/tinyobj_loader_c.h"
+
 #define MAIN_VS   "D:\\work\\namefull\\source\\shaders\\vs_main.glsl"
 #define MAIN_FS   "D:\\work\\namefull\\source\\shaders\\fs_main.glsl"
 #define SCREEN_VS "D:\\work\\namefull\\source\\shaders\\vs_screen.glsl"
@@ -16,10 +19,10 @@
 #define Initial_Textures 8
 
 typedef struct Vertex {
-  Vec3f32 position;
-  Vec4f32 color;
-  Vec2f32 uv;
-  Vec3f32 normal;
+  Vector3 position;
+  Vector4 color;
+  Vector2 uv;
+  Vector3 normal;
   f32     texture;
 } Vertex;
 
@@ -68,15 +71,15 @@ typedef struct Renderer {
 Renderer GRenderer;
 
 internal void renderer_init(s32 window_width, s32 window_height);
-internal void renderer_draw(Mat4f32 view, Mat4f32 projection, s32 window_width, s32 window_height);
+internal void renderer_draw(Matrix4 view, Matrix4 projection, s32 window_width, s32 window_height);
 internal void renderer_on_resize(s32 window_width, s32 window_height);
 
 internal f32 renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a);
 
-internal void  renderer_push_triangle(Vertex a, Vertex b, Vertex c);
-internal void  renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture);
+internal void renderer_push_triangle(Vertex a, Vertex b, Vertex c);
+internal void renderer_push_line(Vector3 a_position, Vector3 b_position, u32 texture);
 
-internal void renderer_set_uniform_mat4fv(u32 program, const char* uniform, Mat4f32 mat);
+internal void renderer_set_uniform_mat4fv(u32 program, const char* uniform, Matrix4 mat);
 internal void renderer_set_array_s32(u32 program, const char* uniform, s32 count, s32* ptr);
 internal void renderer_set_uniform_s32(u32 program, const char* uniform, s32 s);
 

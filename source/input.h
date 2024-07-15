@@ -158,7 +158,7 @@ typedef struct Mouse_State {
       f32 screen_space_x;
       f32 screen_space_y;
     };
-    Vec2f32 screen_space;
+    Vector2 screen_space;
   };
   b8 buttons[MouseButton_Count];
 } Mouse_State;

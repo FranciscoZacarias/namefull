@@ -238,14 +238,14 @@ renderer_init(s32 window_width, s32 window_height) {
 }
 
 internal void
-renderer_draw(Mat4f32 view, Mat4f32 projection, s32 window_width, s32 window_height) {
+renderer_draw(Matrix4 view, Matrix4 projection, s32 window_width, s32 window_height) {
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GRenderer.msaa_fbo);
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
   
   glUseProgram(GRenderer.main_shader);
-  renderer_set_uniform_mat4fv(GRenderer.main_shader, "u_model",      mat4f32(1.0f));
+  renderer_set_uniform_mat4fv(GRenderer.main_shader, "u_model",      matrix4(1.0f));
   renderer_set_uniform_mat4fv(GRenderer.main_shader, "u_view",       view);
   renderer_set_uniform_mat4fv(GRenderer.main_shader, "u_projection", projection);
   
@@ -444,7 +444,7 @@ renderer_push_triangle(Vertex a, Vertex b, Vertex c) {
 }
 
 internal void
-renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture) {
+renderer_push_line(Vector3 a_position, Vector3 b_position, u32 texture) {
   if (GRenderer.lines_indices_count + 3 > GRenderer.lines_indices_capacity) {
     printf("Too many lines indices");
     Assert(0);
@@ -454,8 +454,8 @@ renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture) {
     Assert(0);
   }
 
-  Vertex a = vertex(a_position, vec4f32(1.0f, 1.0f, 1.0f, 1.0f), vec2f32(0.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
-  Vertex b = vertex(b_position, vec4f32(1.0f, 1.0f, 1.0f, 1.0f), vec2f32(0.0f, 0.0f), vec3f32(0.0, 0.0, 0.0), texture);
+  Vertex a = vertex(a_position, vector4(1.0f, 1.0f, 1.0f, 1.0f), vector2(0.0f, 0.0f), vector3(0.0, 0.0, 0.0), texture);
+  Vertex b = vertex(b_position, vector4(1.0f, 1.0f, 1.0f, 1.0f), vector2(0.0f, 0.0f), vector3(0.0, 0.0, 0.0), texture);
   
   b32 a_exists = false;
   b32 b_exists = false;
@@ -492,10 +492,10 @@ renderer_push_line(Vec3f32 a_position, Vec3f32 b_position, u32 texture) {
 }
 
 internal void
-renderer_set_uniform_mat4fv(u32 program, const char* uniform, Mat4f32 mat) {
+renderer_set_uniform_mat4fv(u32 program, const char* uniform, Matrix4 mat) {
   s32 uniform_location = glGetUniformLocation(program, uniform);
   if (uniform_location == -1) {
-    printf("Mat4f32 :: Uniform %s not found\n", uniform);
+    printf("Matrix4 :: Uniform %s not found\n", uniform);
     return;
   }
   glUniformMatrix4fv(uniform_location, 1, 1, &mat.data[0][0]);

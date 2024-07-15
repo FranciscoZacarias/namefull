@@ -2,10 +2,10 @@ internal Camera camera_init() {
   AssertNoReentry();
   
 	Camera camera;
-	camera.position = vec3f32(0.0f, 0.0f, 3.0f);
-	camera.front    = vec3f32(0.0f, 0.0f, 0.0f);
-	camera.up       = vec3f32(0.0f, 0.0f, 0.0f);
-	camera.right    = vec3f32(0.0f, 0.0f, 0.0f);
+	camera.position = vector3(0.0f, 0.0f, 3.0f);
+	camera.front    = vector3(0.0f, 0.0f, 0.0f);
+	camera.up       = vector3(0.0f, 0.0f, 0.0f);
+	camera.right    = vector3(0.0f, 0.0f, 0.0f);
 	camera.pitch    = -0.0f;
 	camera.yaw      = -90.0f;
   camera.mode     = CameraMode_Select;
@@ -15,10 +15,10 @@ internal Camera camera_init() {
 }
 
 internal void print_camera(Camera camera) {
-  print_vec3f32(camera.position, "camera.position = ");
-  print_vec3f32(camera.front,    "camera.front    = ");
-  print_vec3f32(camera.up,       "camera.up       = ");
-  print_vec3f32(camera.right,    "camera.right    = ");
+  print_vector3(camera.position, "camera.position = ");
+  print_vector3(camera.front,    "camera.front    = ");
+  print_vector3(camera.up,       "camera.up       = ");
+  print_vector3(camera.right,    "camera.right    = ");
   printf("camera.pitch    = %.2ff;\ncamera.yaw      = %.2ff;\n-------------\n", camera.pitch, camera.yaw);
 }
 
@@ -37,22 +37,22 @@ internal void camera_update(Camera* camera, f32 delta_time) {
     f32 camera_speed = (CAMERA_SPEED * delta_time);
     
     if (input_is_key_down(KeyboardKey_W)) {
-      Vec3f32 delta = scale_vec3f32(camera->front, camera_speed);
-      camera->position = add_vec3f32(camera->position, delta);
+      Vector3 delta = vector3_scale(camera->front, camera_speed);
+      camera->position = vector3_add(camera->position, delta);
     }
     if (input_is_key_down(KeyboardKey_S)) {
-      Vec3f32 delta = scale_vec3f32(camera->front, camera_speed);
-      camera->position = sub_vec3f32(camera->position, delta);
+      Vector3 delta = vector3_scale(camera->front, camera_speed);
+      camera->position = sub(camera->position, delta);
     }
     if (input_is_key_down(KeyboardKey_A)) {
-      Vec3f32 cross = cross_vec3f32(camera->front, camera->up);
-      Vec3f32 delta = scale_vec3f32(cross, camera_speed);
-      camera->position = sub_vec3f32(camera->position, delta);
+      Vector3 cross = vector3_cross(camera->front, camera->up);
+      Vector3 delta = vector3_scale(cross, camera_speed);
+      camera->position = sub(camera->position, delta);
     }
     if (input_is_key_down(KeyboardKey_D)) {
-      Vec3f32 cross = cross_vec3f32(camera->front, camera->up);
-      Vec3f32 delta = scale_vec3f32(cross, camera_speed);
-      camera->position = add_vec3f32(camera->position, delta);
+      Vector3 cross = vector3_cross(camera->front, camera->up);
+      Vector3 delta = vector3_scale(cross, camera_speed);
+      camera->position = vector3_add(camera->position, delta);
     }
     if (input_is_key_down(KeyboardKey_Q)) {
       camera->position.y -= camera_speed;
@@ -78,11 +78,11 @@ internal void camera_update(Camera* camera, f32 delta_time) {
 }
 
 internal void _camera_update(Camera* camera) {
-  Vec3f32 front = vec3f32(cos(Radians(camera->yaw)) * cos(Radians(camera->pitch)),sin(Radians(camera->pitch)),sin(Radians(camera->yaw)) * cos(Radians(camera->pitch)));
+  Vector3 front = vector3(cos(Radians(camera->yaw)) * cos(Radians(camera->pitch)),sin(Radians(camera->pitch)),sin(Radians(camera->yaw)) * cos(Radians(camera->pitch)));
   
-  camera->front = normalize_vec3f32(front);
-  Vec3f32 right = cross_vec3f32(camera->front, WORLD_UP);
-  camera->right = normalize_vec3f32(right);
-  Vec3f32 up    = cross_vec3f32(camera->right, camera->front);
-  camera->up    = normalize_vec3f32(up);
+  camera->front = vector3_normalize(front);
+  Vector3 right = vector3_cross(camera->front, WORLD_UP);
+  camera->right = vector3_normalize(right);
+  Vector3 up    = vector3_cross(camera->right, camera->front);
+  camera->up    = vector3_normalize(up);
 }
