@@ -3,6 +3,8 @@
 #define F_MATH_H
 
 #define PI 3.14159265358979323846f
+#define EPSILON 0.000001f
+
 #define Degrees(r) (r * (180 / PI))
 #define Radians(d) (d * (PI / 180))
 
@@ -15,6 +17,7 @@ typedef struct Vector2 {
 		};
 	};
 } Vector2;
+#define vector2(x,y) (Vector2){x,y}
 
 typedef struct Vector3 {
   union {
@@ -26,6 +29,7 @@ typedef struct Vector3 {
     };
   };
 } Vector3;
+#define vector3(x,y,z) (Vector3){x,y,z}
 
 typedef struct Vector4 {
   union {
@@ -38,6 +42,7 @@ typedef struct Vector4 {
     };
   };
 } Vector4;
+#define vector4(x,y,z,w) (Vector4){x,y,z,w}
 
 typedef struct Matrix4 {
   union {
@@ -50,7 +55,7 @@ typedef struct Matrix4 {
     };
   };
 } Matrix4;
-#define matrix4_identity() matrix4(1.0f)
+#define matrix4(diag) (Matrix4) {diag,0.0f,0.0f,0.0f,0.0f,diag,0.0f,0.0f,0.0f,0.0f,diag,0.0f,0.0f,0.0f,0.0f,diag}
 
 typedef struct Quaternion {
   union {
@@ -79,13 +84,16 @@ typedef struct Rayf32 {
 } Rayf32;
 #define rayf32(point, direction) (Rayf32){point,direction}
 
+internal f32 f32_clamp(f32 value, f32 min, f32 max);
+internal f32 f32_lerp(f32 start, f32 end, f32 amount);
+internal f32 f32_normalize(f32 value, f32 start, f32 end);
+internal f32 f32_remap(f32 value, f32 inputStart, f32 inputEnd, f32 outputStart, f32 outputEnd);
+internal f32 f32_wrap(f32 value, f32 min, f32 max);
 internal b32 f32_equals(f32 a, f32 b);
 
-internal Vector2 vector2(f32 x, f32 y);
 internal f32 vector2_distance(Vector2 a, Vector2 b);
 internal f32 vector2_distance_signed(Vector2 a, Vector2 b, Vector2 reference);
 
-internal Vector3 vector3(f32 x, f32 y, f32 z);
 internal Vector3 vector3_from_vector4(Vector4 v); /* Discards the w value */
 internal void print_vector3(Vector3 v, const char* label);
 
@@ -109,7 +117,6 @@ internal f32 vector3_length(Vector3 v);
 internal f32 vector3_distance(Vector3 a, Vector3 b);
 internal f32 vector3_angle(Vector3 a, Vector3 b);
 
-internal Vector4 vector4 (f32 x, f32 y, f32 z, f32 w);
 internal Vector4 vector4_from_vector3(Vector3 v);
 
 internal Vector4 vector4_add(Vector4 a, Vector4 b);
@@ -126,7 +133,6 @@ internal f32 vector4_dot(Vector4 a, Vector4 b);
 internal f32 vector4_length(Vector4 v);
 internal f32 vector4_distance(Vector4 a, Vector4 b);
 
-internal Matrix4 matrix4(f32 diag);
 internal Matrix4 matrix4_add(Matrix4 left, Matrix4 right);
 internal Matrix4 matrix4_sub(Matrix4 left, Matrix4 right); /* Apply the left matrix to the right matrix*/
 internal Matrix4 matrix4_mul(Matrix4 left, Matrix4 right); 
@@ -171,8 +177,6 @@ internal void       euler_from_quaternion(Quaternion q, f32* pitch, f32* yaw, f3
 internal Quaternion quaternion_mul_matric4(Quaternion q, Matrix4 mat);
 internal b32        quaternion_equals(Quaternion p, Quaternion q);
 
-internal f32 clampf32(f32 value, f32 min, f32 max);
-internal f32 lerpf32(f32 start, f32 end, f32 t);
 internal b32 is_vector_inside_rectangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c);
 internal Vector3 intersect_ray_with_plane(Rayf32 line, Vector3 point1, Vector3 point2, Vector3 point3);
 

@@ -1,14 +1,37 @@
-internal b32 f32_equals(f32 a, f32 b)
-{
-#if !defined(EPSILON)
-	#define EPSILON 0.000001f
-#endif
-	b32 result = (fabsf(a - b)) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a), fabsf(b))));
+internal f32 f32_clamp(f32 value, f32 min, f32 max) {
+	f32 result = (value < min)? min : value;
+	if (result > max) {
+		result = max;
+	}
 	return result;
 }
 
-internal Vector2 vector2(f32 x, f32 y) {
-	Vector2 result = {x, y};
+// Calculate linear interpolation between two f32s
+internal f32 f32_lerp(f32 start, f32 end, f32 amount) {
+	f32 result = start + amount*(end - start);
+	return result;
+}
+
+// Normalize input value within input range
+internal f32 f32_normalize(f32 value, f32 start, f32 end) {
+	f32 result = (value - start)/(end - start);
+	return result;
+}
+
+// Remap input value within input range to output range
+internal f32 f32_remap(f32 value, f32 inputStart, f32 inputEnd, f32 outputStart, f32 outputEnd) {
+    f32 result = (value - inputStart)/(inputEnd - inputStart)*(outputEnd - outputStart) + outputStart;
+    return result;
+}
+
+// Wrap input value from min to max
+internal f32 f32_wrap(f32 value, f32 min, f32 max) {
+    f32 result = value - (max - min)*floorf((value - min)/(max - min));
+    return result;
+}
+
+internal b32 f32_equals(f32 a, f32 b) {
+	b32 result = (fabsf(a - b)) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a), fabsf(b))));
 	return result;
 }
 
@@ -35,11 +58,6 @@ internal f32 vector2_distance_signed(Vector2 a, Vector2 b, Vector2 reference) {
   }
   
   return result;
-}
-
-internal Vector3 vector3(f32 x, f32 y, f32 z) {
-	Vector3 result = {x, y, z};
-	return result;
 }
 
 internal Vector3 vector3_from_vector4(Vector4 v) {
@@ -313,11 +331,6 @@ internal f32 vector3_angle(Vector3 a, Vector3 b) {
 	return result;
 }
 
-internal Vector4 vector4(f32 x, f32 y, f32 z, f32 w) {
-	Vector4 result = {x, y, z, w};
-	return result;
-}
-
 internal Vector4 vector4_from_vector3(Vector3 v) {
 	Vector4 result = {v.x, v.y, v.z};
 	return result;
@@ -418,15 +431,6 @@ internal f32 vector4_distance(Vector4 a, Vector4 b) {
 
 //////////////////////////////////////////////
 // Matrix4 f32
-internal Matrix4 matrix4(f32 diag) {
-	Matrix4 result = {
-		diag, 0.0f, 0.0f, 0.0f,
-		0.0f, diag, 0.0f, 0.0f,
-		0.0f, 0.0f, diag, 0.0f,
-		0.0f, 0.0f, 0.0f, diag };
-  
-	return result;
-}
 
 internal Matrix4 matrix4_add(Matrix4 left, Matrix4 right) {
 	Matrix4 result = { 0 };
@@ -820,7 +824,7 @@ internal Matrix4 matrix4_look_at(Vector3 eye, Vector3 target, Vector3 up) {
 }
 
 internal Matrix4 matrix_from_quaternion(Quaternion q) {
-	Matrix4 result = matrix4_identity();
+	Matrix4 result = matrix4(1.0f);
 
 	f32 a2 = q.x*q.x;
 	f32 b2 = q.y*q.y;
@@ -1021,9 +1025,6 @@ internal Quaternion quaternion_nlerp(Quaternion q1, Quaternion q2, f32 amount) {
 internal Quaternion quaternion_slerp(Quaternion q1, Quaternion q2, f32 amount) {
 	Quaternion result = { 0 };
 
-#if !defined(EPSILON)
-	#define EPSILON 0.000001f
-#endif
 
 	f32 cosHalfTheta = q1.x*q2.x + q1.y*q2.y + q1.z*q2.z + q1.w*q2.w;
 
@@ -1231,9 +1232,6 @@ internal void axis_angle_from_quaternion(Quaternion q, Vector3 *axis, f32 *angle
 	f32 resAngle = 2.0f*acosf(q.w);
 	f32 den = sqrtf(1.0f - q.w*q.w);
 
-#if !defined(EPSILON)
-	#define EPSILON 0.000001f
-#endif
 
 	if (den > EPSILON) {
 		resAxis.x = q.x/den;
@@ -1297,9 +1295,6 @@ internal Quaternion quaternion_mul_matric4(Quaternion q, Matrix4 mat) {
 }
 
 internal b32 quaternion_equals(Quaternion p, Quaternion q) {
-	#if !defined(EPSILON)
-    #define EPSILON 0.000001f
-#endif
 
 	b32 result = (((fabsf(p.x - q.x)) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(p.x), fabsf(q.x))))) &&
 								((fabsf(p.y - q.y)) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(p.y), fabsf(q.y))))) &&
@@ -1310,21 +1305,6 @@ internal b32 quaternion_equals(Quaternion p, Quaternion q) {
 								((fabsf(p.z + q.z)) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(p.z), fabsf(q.z))))) &&
 								((fabsf(p.w + q.w)) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(p.w), fabsf(q.w))))));
 
-	return result;
-}
-
-internal f32 clampf32(f32 value, f32 min, f32 max) {
-	f32 result = value;
-	if (result < min) {
-		result = min;
-	} else if (result > max) {
-		result = max;
-	}
-	return result;
-}
-
-internal f32 lerpf32(f32 start, f32 end, f32 t) {
-	f32 result = start + t * (end - start);
 	return result;
 }
 
