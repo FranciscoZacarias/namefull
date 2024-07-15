@@ -25,8 +25,20 @@ typedef struct Vertex {
   Vector3 normal;
   f32     texture;
 } Vertex;
+#define vertex(p,c,u,n,t) (Vertex){p,c,u,n,t}
 
-#define vertex(position,color,uv,normal,texture) (Vertex){position,color,uv,normal,texture}
+typedef struct Mesh {
+  u32 vertex_count;
+  u32 triangle_count;
+} Mesh;
+
+typedef struct Model {
+  Matrix4 transform;
+
+  u32 mesh_count;
+  Mesh *meshes;
+  u32 material_count;
+} Model;
 
 typedef struct Renderer {
   
@@ -74,7 +86,8 @@ internal void renderer_init(s32 window_width, s32 window_height);
 internal void renderer_draw(Matrix4 view, Matrix4 projection, s32 window_width, s32 window_height);
 internal void renderer_on_resize(s32 window_width, s32 window_height);
 
-internal f32 renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a);
+internal f32   renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a);
+internal Model renderer_load_obj(String path);
 
 internal void renderer_push_triangle(Vertex a, Vertex b, Vertex c);
 internal void renderer_push_line(Vector3 a_position, Vector3 b_position, u32 texture);

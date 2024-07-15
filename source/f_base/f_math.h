@@ -78,11 +78,11 @@ typedef struct Transform {
 } Transform;
 #define transform(t,r,s) (Transform){t,r,s}
 
-typedef struct Rayf32 {
+typedef struct Ray {
   Vector3 point;
   Vector3 direction;
-} Rayf32;
-#define rayf32(point, direction) (Rayf32){point,direction}
+} Ray;
+#define ray(point, direction) (Rayf32){point,direction}
 
 internal f32 f32_clamp(f32 value, f32 min, f32 max);
 internal f32 f32_lerp(f32 start, f32 end, f32 amount);
@@ -178,6 +178,6 @@ internal Quaternion quaternion_mul_matric4(Quaternion q, Matrix4 mat);
 internal b32        quaternion_equals(Quaternion p, Quaternion q);
 
 internal b32 is_vector_inside_rectangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c);
-internal Vector3 intersect_ray_with_plane(Rayf32 line, Vector3 point1, Vector3 point2, Vector3 point3);
+internal Vector3 intersect_ray_with_plane(Ray line, Vector3 point1, Vector3 point2, Vector3 point3);
 
 #endif // F_MATH_H

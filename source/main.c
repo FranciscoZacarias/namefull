@@ -17,6 +17,8 @@ int main(int argc, char** argv) {
   renderer_push_line(vector3( 0.0f, -8.0f,  0.0f), vector3(0.0f, 8.0f, 0.0f), texture_green);
   renderer_push_line(vector3( 0.0f,  0.0f, -8.0f), vector3(0.0f, 0.0f, 8.0f), texture_blue);
 
+  Model model = renderer_load_obj(StringLiteral("D:\\work\\namefull\\resources\\crate.obj"));
+
   while (GProgram.is_running) {
     program_tick();
 
@@ -28,8 +30,7 @@ int main(int argc, char** argv) {
   return 0;
 }
 
-internal void
-program_tick() {
+internal void program_tick() {
   input_update(); 
   glfwPollEvents();
   
@@ -57,8 +58,7 @@ program_tick() {
   }
 }
 
-internal void 
-program_init() {
+internal void  program_init() {
   AssertNoReentry();
   MemoryZeroStruct(&GProgram);
   
@@ -104,15 +104,13 @@ program_init() {
   }
 }
 
-internal void 
-framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+internal void  framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
   GProgram.window_width  = width;
   GProgram.window_height = height;
 }
 
-internal void 
-keyboard_callback(GLFWwindow* window, s32 key, s32 scancode, s32 action, s32 mods) {
+internal void  keyboard_callback(GLFWwindow* window, s32 key, s32 scancode, s32 action, s32 mods) {
   switch (key) {
     case 256: key = 0x1B; break; // ESC
     case 258: key = 0x09; break; // TAB
@@ -131,13 +129,11 @@ keyboard_callback(GLFWwindow* window, s32 key, s32 scancode, s32 action, s32 mod
   }
 }
 
-internal void 
-mouse_cursor_callback(GLFWwindow* window, f64 x_position, f64 y_position) {
+internal void  mouse_cursor_callback(GLFWwindow* window, f64 x_position, f64 y_position) {
   input_process_mouse_cursor(x_position, y_position);
 }
 
-internal void 
-mouse_button_callback(GLFWwindow* window, s32 button, s32 action, s32 mods) {
+internal void  mouse_button_callback(GLFWwindow* window, s32 button, s32 action, s32 mods) {
   b32 is_pressed = (action != GLFW_RELEASE);
   
   if (button == MouseButton_Right && is_pressed) {

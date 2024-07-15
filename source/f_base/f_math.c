@@ -6,25 +6,21 @@ internal f32 f32_clamp(f32 value, f32 min, f32 max) {
 	return result;
 }
 
-// Calculate linear interpolation between two f32s
 internal f32 f32_lerp(f32 start, f32 end, f32 amount) {
 	f32 result = start + amount*(end - start);
 	return result;
 }
 
-// Normalize input value within input range
 internal f32 f32_normalize(f32 value, f32 start, f32 end) {
 	f32 result = (value - start)/(end - start);
 	return result;
 }
 
-// Remap input value within input range to output range
 internal f32 f32_remap(f32 value, f32 inputStart, f32 inputEnd, f32 outputStart, f32 outputEnd) {
     f32 result = (value - inputStart)/(inputEnd - inputStart)*(outputEnd - outputStart) + outputStart;
     return result;
 }
 
-// Wrap input value from min to max
 internal f32 f32_wrap(f32 value, f32 min, f32 max) {
     f32 result = value - (max - min)*floorf((value - min)/(max - min));
     return result;
@@ -1328,7 +1324,7 @@ internal b32 is_vector_inside_rectangle(Vector3 p, Vector3 a, Vector3 b, Vector3
 	return result;
 }
 
-internal Vector3 intersect_ray_with_plane(Rayf32 ray, Vector3 point1, Vector3 point2, Vector3 point3) {
+internal Vector3 intersect_ray_with_plane(Ray ray, Vector3 point1, Vector3 point2, Vector3 point3) {
 	Vector3 result   = vector3(F32_MAX, F32_MAX, F32_MAX);
 	Vector3 plane_v1 = vector3(point2.x-point1.x, point2.y-point1.y, point2.z-point1.z);
 	Vector3 plane_v2 = vector3(point3.x-point1.x, point3.y-point1.y, point3.z-point1.z);

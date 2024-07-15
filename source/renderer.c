@@ -1,5 +1,4 @@
-internal void
-renderer_init(s32 window_width, s32 window_height) {
+internal void renderer_init(s32 window_width, s32 window_height) {
   AssertNoReentry();
   
   MemoryZeroStruct(&GRenderer);
@@ -237,8 +236,7 @@ renderer_init(s32 window_width, s32 window_height) {
   scratch_end(&scratch);
 }
 
-internal void
-renderer_draw(Matrix4 view, Matrix4 projection, s32 window_width, s32 window_height) {
+internal void renderer_draw(Matrix4 view, Matrix4 projection, s32 window_width, s32 window_height) {
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GRenderer.msaa_fbo);
   glClearColor(0.0, 0.0, 0.0, 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -302,8 +300,7 @@ renderer_draw(Matrix4 view, Matrix4 projection, s32 window_width, s32 window_hei
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-internal void
-renderer_on_resize(s32 window_width, s32 window_height) {
+internal void renderer_on_resize(s32 window_width, s32 window_height) {
   // Delete and recreate MSAA framebuffer
   glBindFramebuffer(GL_FRAMEBUFFER, GRenderer.msaa_fbo);
   glDeleteTextures(1, &GRenderer.msaa_texture_color_buffer_multisampled);
@@ -356,8 +353,7 @@ renderer_on_resize(s32 window_width, s32 window_height) {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-internal f32
-renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a) {
+internal f32 renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a) {
   u8 texture_data[4] = {
     (u8)(255.0*r),
     (u8)(255.0*g),
@@ -384,8 +380,41 @@ renderer_load_color_texture(f32 r, f32 g, f32 b, f32 a) {
   return (f32)texture_index;
 }
 
-internal void
-renderer_push_triangle(Vertex a, Vertex b, Vertex c) {
+internal Model renderer_load_obj(String path) {
+  Model result = { 0 };
+
+  tinyobj_attrib_t attrib = { 0 };
+
+  u32 mesh_count          = 0;
+  tinyobj_shape_t *meshes = NULL;
+  u32 material_count           = 0;
+  tinyobj_material_t *materials = NULL;
+  
+  Arena_Temp scratch = scratch_begin(0, 0);
+  OS_File file = os_file_load_entire_file(scratch.arena, path);
+  if (file.size == 0) {
+    printf("Error loading file %s.", path.str);
+    Assert(0);
+  }
+
+  s32 tinyobj_result = tinyobj_parse_obj(&attrib, &meshes, &mesh_count, &materials, &material_count, file.data, file.size, TINYOBJ_FLAG_TRIANGULATE);
+  if (tinyobj_result != TINYOBJ_SUCCESS) {
+    printf("Error on tinyobj_parse_obj.");
+    Assert(0);
+  }
+
+  result.mesh_count     = mesh_count;
+  result.material_count = material_count;
+  if (result.material_count == 0) {
+      printf("No materials provided, setting one default material for all meshes.\n");
+      result.material_count = 1;
+  }
+
+  scratch_end(&scratch);
+  return result;
+}
+
+internal void renderer_push_triangle(Vertex a, Vertex b, Vertex c) {
   if (GRenderer.triangles_indices_count + 3 > GRenderer.triangles_indices_capacity) {
     printf("Too many triangles indices");
     Assert(0);
@@ -443,8 +472,7 @@ renderer_push_triangle(Vertex a, Vertex b, Vertex c) {
   }
 }
 
-internal void
-renderer_push_line(Vector3 a_position, Vector3 b_position, u32 texture) {
+internal void renderer_push_line(Vector3 a_position, Vector3 b_position, u32 texture) {
   if (GRenderer.lines_indices_count + 3 > GRenderer.lines_indices_capacity) {
     printf("Too many lines indices");
     Assert(0);
@@ -491,8 +519,7 @@ renderer_push_line(Vector3 a_position, Vector3 b_position, u32 texture) {
   }
 }
 
-internal void
-renderer_set_uniform_mat4fv(u32 program, const char* uniform, Matrix4 mat) {
+internal void renderer_set_uniform_mat4fv(u32 program, const char* uniform, Matrix4 mat) {
   s32 uniform_location = glGetUniformLocation(program, uniform);
   if (uniform_location == -1) {
     printf("Matrix4 :: Uniform %s not found\n", uniform);
@@ -501,8 +528,7 @@ renderer_set_uniform_mat4fv(u32 program, const char* uniform, Matrix4 mat) {
   glUniformMatrix4fv(uniform_location, 1, 1, &mat.data[0][0]);
 }
 
-internal void
-renderer_set_array_s32(u32 program, const char* uniform, s32 count, s32* ptr) {
+internal void renderer_set_array_s32(u32 program, const char* uniform, s32 count, s32* ptr) {
   s32 uniform_location = glGetUniformLocation(program, uniform);
   if (uniform_location == -1) {
     printf("Array[s32] :: Uniform %s not found\n", uniform);
@@ -511,8 +537,7 @@ renderer_set_array_s32(u32 program, const char* uniform, s32 count, s32* ptr) {
   glUniform1iv(uniform_location, count, ptr);
 }
 
-internal void
-renderer_set_uniform_s32(u32 program, const char* uniform, s32 s) {
+internal void renderer_set_uniform_s32(u32 program, const char* uniform, s32 s) {
   s32 uniform_location = glGetUniformLocation(program, uniform);
   if (uniform_location == -1) {
     printf("s32 :: Uniform %s not found\n", uniform);
