@@ -27,17 +27,41 @@ typedef struct Vertex {
 } Vertex;
 #define vertex(p,c,u,n,t) (Vertex){p,c,u,n,t}
 
+typedef struct Texture {
+  u32 id;
+  s32 width;
+  s32 height;
+  s32 mipmaps;
+  s32 format;
+} Texture;
+
+typedef struct MaterialMap {
+  Texture texture;
+  Vector4 color;
+  f32 value;
+} MaterialMap;
+
+typedef struct Material {
+  u32 shader;
+  MaterialMap *maps;
+  f32 params[4];
+} Material;
+
 typedef struct Mesh {
   u32 vertex_count;
   u32 triangle_count;
 } Mesh;
 
 typedef struct Model {
+  Arena* arena; // TODO(fz): This should be another arena, outside the struct.
+
   Matrix4 transform;
 
   u32 mesh_count;
-  Mesh *meshes;
+  Mesh *meshes_data;
   u32 material_count;
+  Material *materials_data;
+  u32 *mesh_material;
 } Model;
 
 typedef struct Renderer {
