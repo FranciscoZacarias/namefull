@@ -411,14 +411,6 @@ internal Model renderer_load_obj(String path) {
   }
 
   result.arena  = arena_init();
-  
-  result.meshes_data    = ArenaPush(result.arena, Mesh, sizeof(Mesh));
-  result.mesh_material  = ArenaPush(result.arena, u32, sizeof(u32));
-  result.materials_data = ArenaPush(result.arena, Material, sizeof(Material));
-
-  for (u32 i = 0; i < result.mesh_count; i += 1) {
-    
-  }
 
   scratch_end(&scratch);
   return result;

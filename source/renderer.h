@@ -50,6 +50,10 @@ typedef struct Material {
 typedef struct Mesh {
   u32 vertex_count;
   u32 triangle_count;
+
+  Vector3* vertices;
+  Vector2* uv;
+  Vector3* normals;
 } Mesh;
 
 typedef struct Model {
@@ -57,11 +61,13 @@ typedef struct Model {
 
   Matrix4 transform;
 
-  u32 mesh_count;
-  Mesh *meshes_data;
-  u32 material_count;
-  Material *materials_data;
-  u32 *mesh_material;
+  u32   mesh_count;
+  Mesh* meshes_data;
+  
+  u32       material_count;
+  Material* materials_data;
+
+  u32* mesh_material;
 } Model;
 
 typedef struct Renderer {
